@@ -1,15 +1,20 @@
 import React from 'react';
 import { usePortal } from '../context/PortalContext';
-import { Laptop, Phone, Mail, MapPin, ShieldCheck, Heart, Lock } from 'lucide-react';
-import { CITIES, BRANDS } from '../data/portalData';
+import { Laptop, Phone, Mail, MapPin, ShieldCheck } from 'lucide-react';
 
 export const Footer = () => {
   const { navigate, COMPANY_INFO } = usePortal();
 
   return (
-    <footer style={{ background: '#07080a', borderTop: '1px solid var(--border-subtle)', paddingTop: '4rem', paddingBottom: '2rem' }}>
-      <div className="container">
-        <div className="grid-4" style={{ marginBottom: '3rem' }}>
+    <footer id="footer" style={{ 
+      background: 'var(--bg-pitch)', 
+      borderTop: '1px solid var(--border-subtle)', 
+      paddingTop: '4rem', 
+      paddingBottom: '2.5rem', 
+      transition: 'background-color 0.3s ease' 
+    }}>
+      <div className="container" style={{ maxWidth: '1240px' }}>
+        <div className="grid-3" style={{ marginBottom: '3.5rem', gap: '3rem' }}>
           {/* Brand Info */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
@@ -17,48 +22,68 @@ export const Footer = () => {
                 width: '38px',
                 height: '38px',
                 borderRadius: '10px',
-                background: 'linear-gradient(135deg, #2a3142 0%, #1e2330 100%)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
+                background: 'var(--btn-primary-bg)',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                boxShadow: 'var(--shadow-card)'
               }}>
                 <Laptop size={22} color="#ffffff" />
               </div>
-              <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.2rem' }}>
-                {COMPANY_INFO.name.split(' ')[0]} <span className="text-gradient-gold">{COMPANY_INFO.name.split(' ').slice(1).join(' ') || 'BUYBACK'}</span>
+              <div style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '1.3rem', color: 'var(--text-main)' }}>
+                TheCash<span style={{ color: 'var(--accent-emerald)' }}>X</span>
               </div>
             </div>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', lineHeight: 1.6, marginBottom: '1.25rem' }}>
-              {COMPANY_INFO.name} is India's leading corporate and consumer IT asset buyback platform. We offer instant valuation, doorstep pickup, instant payment, and 100% certified data wiping.
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.65, marginBottom: '1.25rem' }}>
+              TheCashX is India's leading consumer & enterprise IT buyback platform. Get an instant valuation, free doorstep pickup, and instant cash settlement before we leave.
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-gold)', fontSize: '0.82rem', fontWeight: 600 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-emerald)', fontSize: '0.85rem', fontWeight: 600 }}>
               <ShieldCheck size={16} /> 100% Compliant DoD Data Erasure
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Quick Links (Grid Layout) */}
           <div>
-            <h4 style={{ fontSize: '1.05rem', marginBottom: '1.2rem', color: '#fff' }}>Quick Links</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              <span onClick={() => navigate('/')} style={{ cursor: 'pointer', transition: 'color 0.2s' }}>Home Page</span>
-              <span onClick={() => navigate('/about')} style={{ cursor: 'pointer', transition: 'color 0.2s' }}>About Our Company</span>
-              <span onClick={() => navigate('/sell-laptop')} style={{ cursor: 'pointer', transition: 'color 0.2s' }}>Sell Used Laptop</span>
-              <span onClick={() => navigate('/sell-macbook')} style={{ cursor: 'pointer', transition: 'color 0.2s' }}>Sell Apple MacBook</span>
-              <span onClick={() => navigate('/sell-desktop')} style={{ cursor: 'pointer', transition: 'color 0.2s' }}>Sell Desktop PC</span>
-              <span onClick={() => navigate('/services')} style={{ cursor: 'pointer', transition: 'color 0.2s' }}>Our Services</span>
-              <span onClick={() => navigate('/faq')} style={{ cursor: 'pointer', transition: 'color 0.2s' }}>Frequently Asked Questions</span>
-              <span onClick={() => navigate('/blog')} style={{ cursor: 'pointer', transition: 'color 0.2s' }}>Blog & Value Guide</span>
-            </div>
-          </div>
-
-          {/* Sell by City */}
-          <div>
-            <h4 style={{ fontSize: '1.05rem', marginBottom: '1.2rem', color: '#fff' }}>City Hubs</h4>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              {CITIES.map(c => (
-                <span key={c.id} onClick={() => navigate(`/city/${c.id}`)} style={{ cursor: 'pointer' }}>
-                  Sell Laptop in {c.name}
+            <h4 style={{ fontSize: '1.05rem', marginBottom: '1.2rem', color: 'var(--text-main)', fontWeight: 700 }}>Quick Links</h4>
+            <div style={{ 
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(2, 1fr)', 
+              gap: '0.75rem 1.25rem', 
+              fontSize: '0.88rem', 
+              color: 'var(--text-muted)' 
+            }}>
+              {[
+                { label: 'Home', path: '/' },
+                { label: 'Sell Laptop', path: '/sell-laptop' },
+                { label: 'Sell Desktop', path: '/sell-desktop' },
+                { label: 'Sell Monitor', path: '/sell-monitor' },
+                { label: 'Sell Mac Mini', path: '/sell-macmini' },
+                { label: 'About Us', path: '/about' },
+                { label: 'Services', path: '/services' },
+                { label: 'FAQs', path: '/faq' },
+                { label: 'Contact', path: '/contact' }
+              ].map((item, idx) => (
+                <span 
+                  key={idx}
+                  onClick={() => navigate(item.path)} 
+                  style={{ 
+                    cursor: 'pointer', 
+                    transition: 'all 0.2s ease',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.3rem',
+                    whiteSpace: 'nowrap'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = 'var(--text-main)';
+                    e.currentTarget.style.transform = 'translateX(2px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = 'var(--text-muted)';
+                    e.currentTarget.style.transform = 'translateX(0)';
+                  }}
+                >
+                  {item.label}
                 </span>
               ))}
             </div>
@@ -66,39 +91,20 @@ export const Footer = () => {
 
           {/* Contact Details */}
           <div>
-            <h4 style={{ fontSize: '1.05rem', marginBottom: '1.2rem', color: '#fff' }}>Corporate Office</h4>
+            <h4 style={{ fontSize: '1.05rem', marginBottom: '1.2rem', color: 'var(--text-main)', fontWeight: 700 }}>Corporate Office</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
               <div style={{ display: 'flex', gap: '0.6rem' }}>
-                <MapPin size={18} color="var(--accent-gold)" style={{ flexShrink: 0 }} />
+                <MapPin size={18} color="var(--accent-emerald)" style={{ flexShrink: 0, marginTop: '0.1rem' }} />
                 <span>{COMPANY_INFO.address}</span>
               </div>
               <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
-                <Phone size={16} color="var(--accent-gold)" />
+                <Phone size={16} color="var(--accent-emerald)" />
                 <a href={`tel:${COMPANY_INFO.phone}`}>{COMPANY_INFO.phone}</a>
               </div>
               <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
-                <Mail size={16} color="var(--accent-gold)" />
+                <Mail size={16} color="var(--accent-emerald)" />
                 <a href={`mailto:${COMPANY_INFO.email}`}>{COMPANY_INFO.email}</a>
               </div>
-            </div>
-
-            <div style={{ marginTop: '1.5rem' }}>
-              <button 
-                onClick={() => navigate('/admin')}
-                style={{
-                  fontSize: '0.78rem',
-                  color: 'var(--text-dim)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  padding: '0.4rem 0.8rem',
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: '6px'
-                }}
-              >
-                <Lock size={12} /> Staff Portal Login
-              </button>
             </div>
           </div>
         </div>
@@ -116,13 +122,12 @@ export const Footer = () => {
           color: 'var(--text-muted)'
         }}>
           <div>
-            © {new Date().getFullYear()} {COMPANY_INFO.name}. All rights reserved.
+            © {new Date().getFullYear()} TheCashX. All rights reserved.
           </div>
 
-          <div style={{ display: 'flex', gap: '1.5rem' }}>
+          <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
             <span onClick={() => navigate('/privacy')} style={{ cursor: 'pointer' }}>Privacy Policy</span>
             <span onClick={() => navigate('/terms')} style={{ cursor: 'pointer' }}>Terms & Conditions</span>
-            <span onClick={() => navigate('/sitemap')} style={{ cursor: 'pointer' }}>Sitemap</span>
           </div>
         </div>
       </div>

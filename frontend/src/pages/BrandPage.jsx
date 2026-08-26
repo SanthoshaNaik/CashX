@@ -29,7 +29,7 @@ export const BrandPage = () => {
 
   return (
     <div>
-      <section style={{ padding: '4rem 0 3rem', background: '#000000', borderBottom: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+      <section style={{ padding: '4rem 0 3rem', background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-subtle)', textAlign: 'center', transition: 'background-color 0.3s ease' }}>
         <div className="container">
           <span className="badge badge-gold" style={{ marginBottom: '0.75rem' }}>OFFICIAL BRAND BUYBACK RATES</span>
           <h1 style={{ fontSize: '2.8rem', marginBottom: '1rem' }}>

@@ -301,7 +301,7 @@ export const AuthModal = () => {
 
         {/* Mode Switcher Tabs */}
         {(mode === 'login' || mode === 'register') && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '1.25rem', background: '#11131a', padding: '0.3rem', borderRadius: '10px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginBottom: '1.25rem', background: 'var(--bg-secondary)', padding: '0.3rem', borderRadius: '10px' }}>
             <button
               className={`btn ${mode === 'login' ? 'btn-gold' : 'btn-outline'}`}
               onClick={() => { setMode('login'); setErrorMessage(''); setSuccessMessage(''); }}
@@ -410,7 +410,7 @@ export const AuthModal = () => {
                     <span>Password Strength:</span>
                     <strong style={{ color: strength.color }}>{strength.text}</strong>
                   </div>
-                  <div style={{ height: '4px', background: '#1c1f2e', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ height: '4px', background: 'var(--border-subtle)', borderRadius: '2px', overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: `${strength.pct}%`, background: strength.color, transition: 'all 0.3s' }}></div>
                   </div>
                 </div>
@@ -418,7 +418,7 @@ export const AuthModal = () => {
             </div>
 
             {form.password && (
-              <div style={{ background: '#11131c', border: '1px solid var(--border-subtle)', borderRadius: '10px', padding: '0.75rem', marginBottom: '1.25rem', fontSize: '0.78rem' }}>
+              <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '10px', padding: '0.75rem', marginBottom: '1.25rem', fontSize: '0.78rem' }}>
                 <div style={{ fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.4rem' }}>Security Password Policy Checklist:</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem' }}>
                   <div style={{ color: passwordChecks.length ? '#34d399' : 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
@@ -622,7 +622,7 @@ export const AuthModal = () => {
                     <span>Password Strength:</span>
                     <strong style={{ color: strength.color }}>{strength.text}</strong>
                   </div>
-                  <div style={{ height: '4px', background: '#1c1f2e', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ height: '4px', background: 'var(--border-subtle)', borderRadius: '2px', overflow: 'hidden' }}>
                     <div style={{ height: '100%', width: `${strength.pct}%`, background: strength.color, transition: 'all 0.3s' }}></div>
                   </div>
                 </div>
@@ -631,7 +631,7 @@ export const AuthModal = () => {
 
             {/* LIVE PASSWORD POLICY CHECKLIST WIDGET */}
             {form.password && (
-              <div style={{ background: '#11131c', border: '1px solid var(--border-subtle)', borderRadius: '10px', padding: '0.75rem', marginBottom: '1.25rem', fontSize: '0.78rem' }}>
+              <div style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '10px', padding: '0.75rem', marginBottom: '1.25rem', fontSize: '0.78rem' }}>
                 <div style={{ fontWeight: 700, color: 'var(--text-muted)', marginBottom: '0.4rem' }}>Security Password Policy Checklist:</div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.3rem' }}>
                   <div style={{ color: passwordChecks.length ? '#34d399' : 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>

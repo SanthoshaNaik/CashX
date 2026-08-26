@@ -3,16 +3,16 @@ import { usePortal } from '../context/PortalContext';
 import { Phone, MessageSquare, Calculator } from 'lucide-react';
 
 export const FloatingActions = () => {
-  const { setValuationModalOpen, COMPANY_INFO } = usePortal();
+  const { setCategoryModalOpen, COMPANY_INFO } = usePortal();
 
   const cleanPhone = COMPANY_INFO.phone.replace(/[^0-9]/g, '');
   const cleanWhatsapp = COMPANY_INFO.whatsapp.replace(/[^0-9]/g, '');
 
   return (
-    <div style={{ position: 'fixed', bottom: '2rem', right: '1.5rem', zIndex: 90, display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'flex-end' }}>
+    <div className="floating-actions-container">
       {/* Instant Quote Floating Button */}
       <button
-        onClick={() => setValuationModalOpen(true)}
+        onClick={() => setCategoryModalOpen(true)}
         className="btn btn-gold shadow-glow-gold"
         style={{
           borderRadius: '9999px',
@@ -21,7 +21,7 @@ export const FloatingActions = () => {
           fontWeight: 700
         }}
       >
-        <Calculator size={18} /> Sell Laptop Now
+        <Calculator size={18} /> Sell Device Now
       </button>
 
       {/* WhatsApp Action Button */}

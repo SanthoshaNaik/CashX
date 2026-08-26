@@ -1,24 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { usePortal } from '../context/PortalContext';
-import { Laptop, ShieldCheck, CheckCircle2, Calculator, ArrowRight, ArrowLeft, Truck, Edit3, Sparkles } from 'lucide-react';
-import { BRANDS, CITIES } from '../data/portalData';
+import { Apple, ShieldCheck, CheckCircle2, Calculator, ArrowRight, ArrowLeft, Truck } from 'lucide-react';
+import { MACMINI_MODELS, CITIES } from '../data/portalData';
 
-export const SellLaptopPage = () => {
-  const { createBuybackRequest, calculateQuote, currentUser, setAuthModalOpen, COMPANY_INFO, navigate } = usePortal();
+export const SellMacMiniPage = () => {
+  const { createBuybackRequest, calculateQuote, currentUser, setAuthModalOpen, navigate } = usePortal();
 
   const [formData, setFormData] = useState({
     name: currentUser?.fullName || '',
     phone: currentUser?.phone || '',
     email: '',
     city: 'Bangalore',
-    brand: 'Dell',
-    model: '',
-    processor: 'Intel Core i5',
-    ram: '8GB',
+    brand: 'Apple',
+    model: 'Mac Mini M2 (2023)',
+    processor: 'Apple M2 Chip',
+    ram: '16GB Unified Memory',
     storage: '512GB SSD',
-    condition: 'Good',
-    age: '1-2 Years',
-    accessories: ['Charger'],
+    condition: 'Excellent',
+    accessories: ['Original Power Cord', 'Original Box'],
     address: '',
     expectedPrice: ''
   });
@@ -53,26 +52,31 @@ export const SellLaptopPage = () => {
     });
   };
 
-  // Step 1: User fills details and calculates instant quotation
   const handleCalculateQuotation = (e) => {
     e.preventDefault();
     if (!currentUser) {
       setAuthModalOpen(true);
       return;
     }
-    const quote = calculateQuote({ ...formData, deviceType: 'Laptop' });
+    const quote = calculateQuote({
+      ...formData,
+      deviceType: 'MacMini'
+    });
     setCalculatedQuote(quote);
     setViewState('quotation');
     window.scrollTo({ top: 100, behavior: 'smooth' });
   };
 
-  // Step 2: User accepts quotation and confirms doorstep pickup
   const handleAcceptAndBookPickup = () => {
     if (!currentUser) {
       setAuthModalOpen(true);
       return;
     }
-    const req = createBuybackRequest({ ...formData, deviceType: 'Laptop', expectedPrice: calculatedQuote });
+    const req = createBuybackRequest({
+      ...formData,
+      deviceType: 'MacMini',
+      expectedPrice: calculatedQuote
+    });
     setSubmitted(req);
     setViewState('confirmed');
     window.scrollTo({ top: 100, behavior: 'smooth' });
@@ -81,26 +85,49 @@ export const SellLaptopPage = () => {
   return (
     <div>
       {/* Hero Banner */}
-      <section style={{ padding: '4rem 0 3rem', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-subtle)', textAlign: 'center' }}>
+      <section style={{
+        padding: '4rem 0 3rem',
+        background: 'radial-gradient(circle at 50% 30%, rgba(255,255,255,0.09) 0%, rgba(5,6,8,1) 80%)',
+        borderBottom: '1px solid var(--border-subtle)',
+        textAlign: 'center'
+      }}>
         <div className="container">
-          <span className="badge badge-gold" style={{ marginBottom: '0.75rem' }}>INSTANT ONLINE VALUATION & FREE PICKUP</span>
-          <h1 style={{ fontSize: '2.8rem', marginBottom: '1rem' }}>Sell Your Used <span className="text-gradient-gold">Laptop</span></h1>
-          <p style={{ color: 'var(--text-muted)', maxWidth: '650px', margin: '0 auto', fontSize: '1.05rem' }}>
-            Get an instant price quote for your Dell, HP, Lenovo, Asus, Acer, or Samsung laptop with free doorstep pickup across India.
+          <div style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.08)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '1rem',
+            color: '#ffffff',
+            border: '1px solid var(--border-subtle)'
+          }}>
+            <Apple size={28} />
+          </div>
+          <span className="badge badge-gold" style={{ marginBottom: '0.75rem', display: 'inline-flex' }}>
+            PREMIUM APPLE SILICON & INTEL BUYBACK
+          </span>
+          <h1 style={{ fontSize: 'clamp(2rem, 4vw, 3rem)', marginBottom: '1rem' }}>
+            Sell Your Apple <span className="text-gradient-gold">Mac Mini</span>
+          </h1>
+          <p style={{ color: 'var(--text-muted)', maxWidth: '680px', margin: '0 auto', fontSize: '1.05rem' }}>
+            Get the maximum resale price for your Mac Mini M1, M2, M2 Pro, M4, M4 Pro or Intel Mac Mini. Enjoy free doorstep pickup and instant bank payment.
           </p>
         </div>
       </section>
 
-      {/* Main Flow Section */}
+      {/* Form Section */}
       <section style={{ padding: '4rem 0', background: 'var(--bg-pitch)' }}>
         <div className="container">
           
-          {/* STEP 1: LAPTOP SPECIFICATION FORM */}
+          {/* STEP 1: FORM */}
           {viewState === 'form' && (
             <div style={{ maxWidth: '760px', margin: '0 auto' }}>
               <div className="card-dark" style={{ padding: '2.5rem 2rem' }}>
-                <h3 style={{ fontSize: '1.4rem', marginBottom: '1.5rem', color: 'var(--accent-gold)' }}>
-                  <Calculator size={20} style={{ display: 'inline', marginRight: '0.4rem' }} /> Laptop Valuation Form
+                <h3 style={{ fontSize: '1.4rem', marginBottom: '1.5rem', color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Apple size={22} /> Mac Mini Valuation Form
                 </h3>
 
                 <form onSubmit={handleCalculateQuotation}>
@@ -117,14 +144,21 @@ export const SellLaptopPage = () => {
 
                   <div className="grid-2">
                     <div className="form-group">
-                      <label className="form-label">Email (Optional)</label>
-                      <input type="email" className="form-input" placeholder="Email address" value={formData.email} onChange={e => handleInputChange('email', e.target.value)} />
-                    </div>
-                    <div className="form-group">
                       <label className="form-label">City *</label>
-                      <select className="form-select" value={formData.city} onChange={e => handleInputChange('city', e.target.value)}>
+                      <select className="form-input" value={formData.city} onChange={e => handleInputChange('city', e.target.value)}>
                         {CITIES.map(c => (
                           <option key={c.id} value={c.name}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Mac Mini Model / Chip *</label>
+                      <select className="form-input" value={formData.model} onChange={e => {
+                        handleInputChange('model', e.target.value);
+                        handleInputChange('processor', e.target.value);
+                      }}>
+                        {MACMINI_MODELS.map(m => (
+                          <option key={m.id} value={m.name}>{m.name}</option>
                         ))}
                       </select>
                     </div>
@@ -132,67 +166,41 @@ export const SellLaptopPage = () => {
 
                   <div className="grid-2">
                     <div className="form-group">
-                      <label className="form-label">Brand *</label>
-                      <select className="form-select" value={formData.brand} onChange={e => handleInputChange('brand', e.target.value)}>
-                        {BRANDS.map(b => (
-                          <option key={b.id} value={b.name}>{b.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Model Name</label>
-                      <input type="text" className="form-input" placeholder="e.g. Inspiron 15, Pavilion 14" value={formData.model} onChange={e => handleInputChange('model', e.target.value)} />
-                    </div>
-                  </div>
-
-                  <div className="grid-3">
-                    <div className="form-group">
-                      <label className="form-label">Processor</label>
-                      <select className="form-select" value={formData.processor} onChange={e => handleInputChange('processor', e.target.value)}>
-                        <option value="Intel Core i3">Intel Core i3</option>
-                        <option value="Intel Core i5">Intel Core i5</option>
-                        <option value="Intel Core i7">Intel Core i7</option>
-                        <option value="Intel Core i9">Intel Core i9</option>
-                        <option value="AMD Ryzen 5">AMD Ryzen 5</option>
-                        <option value="AMD Ryzen 7">AMD Ryzen 7</option>
+                      <label className="form-label">Unified RAM *</label>
+                      <select className="form-input" value={formData.ram} onChange={e => handleInputChange('ram', e.target.value)}>
+                        <option value="8GB Unified Memory">8 GB Unified Memory</option>
+                        <option value="16GB Unified Memory">16 GB Unified Memory</option>
+                        <option value="24GB Unified Memory">24 GB Unified Memory</option>
+                        <option value="32GB Unified Memory">32 GB Unified Memory</option>
+                        <option value="64GB+ Unified Memory">64 GB+ Unified Memory</option>
                       </select>
                     </div>
 
                     <div className="form-group">
-                      <label className="form-label">RAM</label>
-                      <select className="form-select" value={formData.ram} onChange={e => handleInputChange('ram', e.target.value)}>
-                        <option value="4GB">4GB</option>
-                        <option value="8GB">8GB</option>
-                        <option value="16GB">16GB</option>
-                        <option value="32GB+">32GB+</option>
-                      </select>
-                    </div>
-
-                    <div className="form-group">
-                      <label className="form-label">Storage</label>
-                      <select className="form-select" value={formData.storage} onChange={e => handleInputChange('storage', e.target.value)}>
-                        <option value="256GB SSD">256GB SSD</option>
-                        <option value="512GB SSD">512GB SSD</option>
-                        <option value="1TB SSD">1TB SSD</option>
-                        <option value="1TB HDD">1TB HDD</option>
+                      <label className="form-label">SSD Storage *</label>
+                      <select className="form-input" value={formData.storage} onChange={e => handleInputChange('storage', e.target.value)}>
+                        <option value="256GB SSD">256 GB PCIe SSD</option>
+                        <option value="512GB SSD">512 GB PCIe SSD</option>
+                        <option value="1TB SSD">1 TB PCIe SSD</option>
+                        <option value="2TB SSD">2 TB PCIe SSD</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Physical Condition *</label>
-                    <select className="form-select" value={formData.condition} onChange={e => handleInputChange('condition', e.target.value)}>
-                      <option value="Excellent">Excellent - Flawless, zero scratches, works 100%</option>
-                      <option value="Good">Good - Minor scratches, fully functional</option>
-                      <option value="Average">Average - Scratches/dents, battery low</option>
-                      <option value="Damaged">Damaged - Cracked screen, keyboard issue or dead</option>
+                    <label className="form-label">Cosmetic & Working Condition *</label>
+                    <select className="form-input" value={formData.condition} onChange={e => handleInputChange('condition', e.target.value)}>
+                      <option value="Excellent">Flawless - Pristine aluminum chassis, zero scratches</option>
+                      <option value="Good">Good - Minor hairline scuffs on bottom plate or ports</option>
+                      <option value="Average">Average - Visible casing dents / heavy port wear</option>
+                      <option value="Damaged">Defective - Power/boot issue or logic board fault</option>
                     </select>
                   </div>
 
                   <div className="form-group">
                     <label className="form-label">Accessories Included</label>
                     <div className="custom-check-grid">
-                      {['Charger', 'Original Box', 'Bill / Invoice', 'Laptop Bag'].map(acc => (
+                      {['Original Power Cord', 'Original Apple Box', 'Tax Invoice / Bill', 'Apple Magic Mouse/Keys'].map(acc => (
                         <div
                           key={acc}
                           className={`custom-check-card ${formData.accessories.includes(acc) ? 'active' : ''}`}
@@ -209,8 +217,8 @@ export const SellLaptopPage = () => {
                     <textarea 
                       required 
                       rows={2} 
-                      className="form-textarea" 
-                      placeholder="Full street address for doorstep pickup" 
+                      className="form-input" 
+                      placeholder="Full address for doorstep inspection & instant payment" 
                       value={formData.address} 
                       onChange={e => handleInputChange('address', e.target.value)}
                       style={{ 
@@ -225,7 +233,7 @@ export const SellLaptopPage = () => {
                     ></textarea>
                   </div>
 
-                  <button type="submit" className="btn btn-gold" style={{ width: '100%', marginTop: '1rem', padding: '1rem', justifyContent: 'center' }}>
+                  <button type="submit" className="btn btn-gold" style={{ width: '100%', padding: '1rem', marginTop: '0.5rem', justifyContent: 'center' }}>
                     Calculate Instant Quotation <ArrowRight size={18} />
                   </button>
                 </form>
@@ -237,8 +245,6 @@ export const SellLaptopPage = () => {
           {viewState === 'quotation' && (
             <div style={{ maxWidth: '760px', margin: '0 auto' }}>
               <div className="card-dark" style={{ padding: '2.5rem 2rem' }}>
-                
-                {/* Quotation Header */}
                 <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
                   <span className="badge badge-gold" style={{ marginBottom: '0.75rem' }}>
                     OFFICIAL ESTIMATED VALUATION
@@ -247,11 +253,10 @@ export const SellLaptopPage = () => {
                     Your Estimated Quotation
                   </h2>
                   <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-                    Calculated for your {formData.brand} {formData.model || 'Laptop'}
+                    Calculated for your {formData.model} ({formData.ram}, {formData.storage})
                   </p>
                 </div>
 
-                {/* Quotation Amount Box */}
                 <div style={{
                   background: 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)',
                   border: '1px solid var(--border-glow)',
@@ -274,11 +279,10 @@ export const SellLaptopPage = () => {
                     ₹{calculatedQuote.toLocaleString()}
                   </div>
                   <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-                    ✓ 100% instant payment via UPI, IMPS, or Cash upon doorstep inspection
+                    ✓ Instant payment via UPI / IMPS upon Apple hardware diagnostic check
                   </div>
                 </div>
 
-                {/* Device & Pickup Details Summary */}
                 <div style={{
                   background: 'var(--bg-secondary)',
                   borderRadius: '14px',
@@ -287,20 +291,16 @@ export const SellLaptopPage = () => {
                   border: '1px solid var(--border-subtle)'
                 }}>
                   <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-main)' }}>
-                    Device & Pickup Summary
+                    Mac Mini & Pickup Summary
                   </h4>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', fontSize: '0.9rem' }}>
                     <div>
-                      <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem' }}>Device</span>
-                      <strong style={{ color: 'var(--text-main)' }}>{formData.brand} {formData.model || 'Laptop'}</strong>
+                      <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem' }}>Model</span>
+                      <strong style={{ color: 'var(--text-main)' }}>{formData.model}</strong>
                     </div>
                     <div>
-                      <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem' }}>Processor & RAM</span>
-                      <strong style={{ color: 'var(--text-main)' }}>{formData.processor}, {formData.ram}</strong>
-                    </div>
-                    <div>
-                      <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem' }}>Storage</span>
-                      <strong style={{ color: 'var(--text-main)' }}>{formData.storage}</strong>
+                      <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem' }}>Unified RAM & SSD</span>
+                      <strong style={{ color: 'var(--text-main)' }}>{formData.ram}, {formData.storage}</strong>
                     </div>
                     <div>
                       <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem' }}>Condition</span>
@@ -311,7 +311,7 @@ export const SellLaptopPage = () => {
                       <strong style={{ color: 'var(--text-main)' }}>{formData.accessories.join(', ') || 'None'}</strong>
                     </div>
                     <div>
-                      <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem' }}>Pickup City</span>
+                      <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem' }}>City</span>
                       <strong style={{ color: 'var(--text-main)' }}>{formData.city}</strong>
                     </div>
                     <div style={{ gridColumn: '1 / -1' }}>
@@ -319,26 +319,24 @@ export const SellLaptopPage = () => {
                       <strong style={{ color: 'var(--text-main)' }}>{formData.address}</strong>
                     </div>
                     <div style={{ gridColumn: '1 / -1' }}>
-                      <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem' }}>Customer Contact</span>
+                      <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem' }}>Contact</span>
                       <strong style={{ color: 'var(--text-main)' }}>{formData.name} ({formData.phone})</strong>
                     </div>
                   </div>
                 </div>
 
-                {/* Assurance Badges */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', marginBottom: '2rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
                     <Truck size={18} color="var(--accent-cyan)" /> Free Doorstep Pickup
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                    <CheckCircle2 size={18} color="var(--accent-emerald)" /> Instant Payment Settlement
+                    <CheckCircle2 size={18} color="var(--accent-emerald)" /> Instant Payment
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                    <ShieldCheck size={18} color="var(--accent-gold)" /> Certified Data Wipe
+                    <ShieldCheck size={18} color="var(--accent-gold)" /> iCloud Deregistration
                   </div>
                 </div>
 
-                {/* Action Buttons */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                   <button
                     onClick={handleAcceptAndBookPickup}
@@ -356,10 +354,9 @@ export const SellLaptopPage = () => {
                     className="btn btn-outline"
                     style={{ width: '100%', padding: '0.85rem', fontSize: '0.9rem', justifyContent: 'center' }}
                   >
-                    <ArrowLeft size={16} /> Edit Device Details
+                    <ArrowLeft size={16} /> Edit Mac Mini Details
                   </button>
                 </div>
-
               </div>
             </div>
           )}
@@ -373,7 +370,7 @@ export const SellLaptopPage = () => {
                 </div>
                 <span className="badge badge-emerald" style={{ marginBottom: '0.75rem' }}>PICKUP BOOKING CONFIRMED</span>
                 <h2 style={{ fontSize: '2rem', marginBottom: '0.75rem', color: 'var(--text-main)' }}>
-                  Your Pickup is Scheduled!
+                  Mac Mini Pickup Scheduled!
                 </h2>
                 <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', marginBottom: '1.5rem' }}>
                   Buyback Order ID: <strong style={{ color: 'var(--accent-gold)' }}>{submitted.id}</strong>
@@ -386,7 +383,7 @@ export const SellLaptopPage = () => {
                     📍 <strong>Pickup Address:</strong> {submitted.customer.address}, {submitted.customer.city}
                   </div>
                   <div>
-                    📞 <strong>Field Agent Assignment:</strong> Our technician will contact <strong>{submitted.customer.phone}</strong> within 15 minutes to confirm the exact time slot and complete instant payment transfer.
+                    📞 <strong>Field Agent Assignment:</strong> Our technician will contact <strong>{submitted.customer.phone}</strong> to confirm your doorstep pickup time.
                   </div>
                 </div>
 
@@ -406,7 +403,7 @@ export const SellLaptopPage = () => {
                     }}
                     style={{ width: '100%', padding: '0.85rem', justifyContent: 'center' }}
                   >
-                    Submit Another Laptop Request
+                    Submit Another Mac Mini Request
                   </button>
                 </div>
               </div>

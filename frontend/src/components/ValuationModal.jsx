@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePortal } from '../context/PortalContext';
 import { X, Calculator, CheckCircle2, ChevronRight, ArrowLeft, Laptop, ShieldCheck, Truck, Lock, LogIn } from 'lucide-react';
 import { BRANDS, CITIES } from '../data/portalData';
@@ -18,13 +18,24 @@ export const ValuationModal = () => {
     age: '1-2 Years',
     accessories: ['Charger'],
     name: currentUser?.fullName || '',
-    phone: '',
-    email: currentUser?.email || '',
+    phone: currentUser?.phone || '',
+    email: '',
     city: 'Bangalore',
     address: '',
     pincode: '',
     expectedPrice: ''
   });
+
+  // Automatically fetch & fill logged in user's name and mobile number
+  useEffect(() => {
+    if (currentUser) {
+      setFormData(prev => ({
+        ...prev,
+        name: currentUser.fullName || prev.name,
+        phone: currentUser.phone || prev.phone
+      }));
+    }
+  }, [currentUser]);
 
   const [calculatedEstimate, setCalculatedEstimate] = useState(0);
   const [submittedResult, setSubmittedResult] = useState(null);
@@ -119,7 +130,7 @@ export const ValuationModal = () => {
             right: '1.25rem',
             color: 'var(--text-muted)',
             padding: '0.4rem',
-            background: 'rgba(255,255,255,0.05)',
+            background: 'var(--btn-outline-bg)',
             borderRadius: '50%'
           }}
         >
@@ -206,8 +217,8 @@ export const ValuationModal = () => {
           <form onSubmit={handleNextStep1}>
             <div className="form-group">
               <label className="form-label">Category *</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
-                {['Laptop', 'MacBook', 'Desktop'].map(type => (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '0.5rem' }}>
+                {['Laptop', 'Desktop', 'Monitor', 'MacMini'].map(type => (
                   <button
                     key={type}
                     type="button"
@@ -418,7 +429,7 @@ export const ValuationModal = () => {
               </div>
             </div>
 
-            <div className="form-group">
+            <div className="form-group" style={{ width: '100%', boxSizing: 'border-box' }}>
               <label className="form-label">Doorstep Pickup Address *</label>
               <textarea
                 required
@@ -427,6 +438,15 @@ export const ValuationModal = () => {
                 placeholder="House / Flat No., Building Name, Street Address"
                 value={formData.address}
                 onChange={e => handleInputChange('address', e.target.value)}
+                style={{ 
+                  width: '100%', 
+                  maxWidth: '100%', 
+                  boxSizing: 'border-box', 
+                  display: 'block', 
+                  resize: 'none', 
+                  minHeight: '80px', 
+                  maxHeight: '80px' 
+                }}
               ></textarea>
             </div>
 
@@ -452,7 +472,7 @@ export const ValuationModal = () => {
               Request ID: <strong style={{ color: 'var(--accent-gold)' }}>{submittedResult.id}</strong> • Assigned Field Agent will contact you at <strong>{submittedResult.customer.phone}</strong> within 15 minutes to confirm your doorstep pickup time.
             </p>
 
-            <div style={{ background: '#11131a', borderRadius: '12px', padding: '1.25rem', textAlign: 'left', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
+            <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', padding: '1.25rem', textAlign: 'left', marginBottom: '1.5rem', fontSize: '0.85rem', border: '1px solid var(--border-subtle)' }}>
               <div style={{ fontWeight: 700, marginBottom: '0.5rem', color: 'var(--accent-gold)' }}>SUMMARY DETAILS:</div>
               <div>• <strong>Device:</strong> {submittedResult.device.brand} {submittedResult.device.model} ({submittedResult.device.processor}, {submittedResult.device.ram}, {submittedResult.device.storage})</div>
               <div>• <strong>Estimated Payout:</strong> ₹{submittedResult.estimatedPrice.toLocaleString('en-IN')}</div>

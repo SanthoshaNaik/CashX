@@ -38,7 +38,7 @@ export const AboutPage = () => {
               </div>
             </div>
 
-            <div className="card-dark" style={{ background: '#11131c', border: '1px solid var(--border-glow)' }}>
+            <div className="card-dark" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-glow)' }}>
               <h3 style={{ fontSize: '1.3rem', marginBottom: '1.25rem', color: 'var(--accent-gold)' }}>Why {COMPANY_INFO.name}?</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {[
@@ -84,7 +84,7 @@ export const AboutPage = () => {
       </section>
 
       {/* Stats Counter */}
-      <section style={{ padding: '3.5rem 0', background: '#0e1017', borderTop: '1px solid var(--border-subtle)', borderBottom: '1px solid var(--border-subtle)' }}>
+      <section style={{ padding: '3.5rem 0', background: 'var(--bg-secondary)', borderTop: '1px solid var(--border-subtle)', borderBottom: '1px solid var(--border-subtle)', transition: 'background-color 0.3s ease' }}>
         <div className="container">
           <div className="grid-4" style={{ textAlign: 'center' }}>
             <div>

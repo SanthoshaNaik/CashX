@@ -1,15 +1,15 @@
 // Dynamic Company Branding & Portal Dataset
-// Customized for company name: "Laptop Buy Back"
+// Customized for company name: "TheCashX"
 
 export const DEFAULT_COMPANY_INFO = {
-  name: "Laptop Buy Back",
-  tagline: "Instant Cash for Used Laptops, MacBooks & Desktops",
-  establishedYear: 2001,
+  name: "TheCashX",
+  tagline: "Instant Cash for Used Laptops, Desktops, Monitors & Mac Mini",
+  establishedYear: 2026,
   yearsExperience: "24+",
   phone: "+91 89709 00825",
   whatsapp: "+91 89709 00825",
-  email: "support@laptopbuyback.com",
-  websiteUrl: "https://www.laptopbuyback.com",
+  email: "support@thecashx.com",
+  websiteUrl: "https://www.thecashx.com",
   address: "Main Commercial Complex, Electronics Hub, MG Road, Bangalore - 560001",
   workingHours: "Mon - Sat: 9:30 AM - 8:00 PM | Sun: 10:00 AM - 4:00 PM",
   googleMapsUrl: "https://maps.google.com/?q=12.9716,77.5946"
@@ -40,6 +40,80 @@ export const CITIES = [
   { id: "delhi", name: "Delhi NCR", hubs: 6, activeAgents: 18 }
 ];
 
+export const CATEGORIES = [
+  {
+    id: "laptop",
+    name: "Laptop",
+    supportingText: "Sell your laptop",
+    title: "Sell Used Laptop",
+    subtitle: "Dell, HP, Lenovo, Apple, Asus, Acer & more",
+    route: "/sell-laptop",
+    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=90",
+    badge: "Highest Payout",
+    basePrice: 24000,
+    features: ["Instant Doorstep Pickup", "Free 2-Hour Diagnostic", "Instant UPI/Cash Payout"]
+  },
+  {
+    id: "desktop",
+    name: "Desktop",
+    supportingText: "Sell your desktop",
+    title: "Sell Desktop PC",
+    subtitle: "Gaming Rigs, Workstations, Towers & AiO PCs",
+    route: "/sell-desktop",
+    image: "https://images.unsplash.com/photo-1587831990711-23ca6441447b?auto=format&fit=crop&w=1200&q=90",
+    badge: "Component Valuation",
+    basePrice: 32000,
+    features: ["GPU/CPU Component Value", "Custom Tower Buyback", "Safe On-Site Testing"]
+  },
+  {
+    id: "monitor",
+    name: "Monitor",
+    supportingText: "Sell your monitor",
+    title: "Sell Monitor",
+    subtitle: "Gaming, 4K, UltraWide & Professional Displays",
+    route: "/sell-monitor",
+    image: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=1200&q=90",
+    badge: "Instant Quote",
+    basePrice: 12000,
+    features: ["1080p / 2K / 4K Displays", "Gaming & High Refresh Rate", "Zero Hassle Doorstep Sale"]
+  },
+  {
+    id: "macmini",
+    name: "Mac Mini",
+    supportingText: "Sell your Mac mini",
+    title: "Sell Mac Mini",
+    subtitle: "Apple Mac Mini M1, M2, M2 Pro, M4 & Intel Series",
+    route: "/sell-macmini",
+    image: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=1200&q=90",
+    badge: "Apple Premium Rates",
+    basePrice: 38000,
+    features: ["Apple Silicon & Intel Models", "Top Resale Value", "DoD Data Sanitization"]
+  }
+];
+
+export const MONITOR_BRANDS = [
+  { id: "dell", name: "Dell" },
+  { id: "lg", name: "LG" },
+  { id: "samsung", name: "Samsung" },
+  { id: "benq", name: "BenQ" },
+  { id: "asus", name: "ASUS ROG / TUF" },
+  { id: "acer", name: "Acer Predator" },
+  { id: "viewsonic", name: "ViewSonic" },
+  { id: "msi", name: "MSI" },
+  { id: "gigabyte", name: "Gigabyte / AORUS" },
+  { id: "apple-display", name: "Apple Studio Display" }
+];
+
+export const MACMINI_MODELS = [
+  { id: "m4-pro", name: "Mac Mini M4 Pro (2024)", basePrice: 75000 },
+  { id: "m4", name: "Mac Mini M4 (2024)", basePrice: 52000 },
+  { id: "m2-pro", name: "Mac Mini M2 Pro (2023)", basePrice: 62000 },
+  { id: "m2", name: "Mac Mini M2 (2023)", basePrice: 42000 },
+  { id: "m1", name: "Mac Mini M1 (2020)", basePrice: 32000 },
+  { id: "intel-i7", name: "Mac Mini Intel Core i7", basePrice: 18000 },
+  { id: "intel-i5", name: "Mac Mini Intel Core i5", basePrice: 14000 }
+];
+
 export const SERVICES = [
   {
     id: "sell-used-laptop",
@@ -50,14 +124,6 @@ export const SERVICES = [
     tag: "High Value"
   },
   {
-    id: "sell-macbook",
-    title: "Sell Apple MacBook",
-    shortDesc: "Specialized buyback rates for MacBook Air, Pro, M1, M2, and M3 series.",
-    fullDesc: "We offer top market rates for Apple MacBooks with transparent battery cycle valuation and instant payment on physical pickup.",
-    icon: "Apple",
-    tag: "Premium Rates"
-  },
-  {
     id: "sell-desktop",
     title: "Sell Desktop & Rigs",
     shortDesc: "Buyback for custom gaming PCs, workstations, and all-in-one desktops.",
@@ -66,20 +132,28 @@ export const SERVICES = [
     tag: "Component Valuation"
   },
   {
+    id: "sell-monitor",
+    title: "Sell Monitors & Displays",
+    shortDesc: "Top rates for 1080p, 2K, 4K, Gaming, and UltraWide monitors.",
+    fullDesc: "Sell your used Dell, LG, Samsung, BenQ, or ASUS monitor with free doorstep inspection and quick instant payout.",
+    icon: "Tv",
+    tag: "Instant Quote"
+  },
+  {
+    id: "sell-macmini",
+    title: "Sell Apple Mac Mini",
+    shortDesc: "Specialized buyback rates for Mac Mini M1, M2, M2 Pro, M4, and Intel.",
+    fullDesc: "We offer top market rates for Apple Mac Mini desktops with transparent hardware assessment and instant payment on pickup.",
+    icon: "Apple",
+    tag: "Apple Rates"
+  },
+  {
     id: "corporate-buyback",
     title: "Corporate ITAD Buyback",
     shortDesc: "Bulk laptop & desktop disposal for companies, startups, and IT parks.",
     fullDesc: "End-to-end corporate asset disposition (ITAD) with bulk evaluation, official GST invoices, chain-of-custody documentation, and eco-recycling compliance.",
     icon: "Building2",
     tag: "B2B Solutions"
-  },
-  {
-    id: "electronic-recycling",
-    title: "E-Waste Recycling",
-    shortDesc: "Environmentally friendly electronic disposal adhering to e-waste norms.",
-    fullDesc: "100% green e-waste recycling for obsolete hardware, damaged motherboards, and dead devices with zero landfill impact.",
-    icon: "Recycle",
-    tag: "Eco Friendly"
   },
   {
     id: "data-destruction",
@@ -98,7 +172,7 @@ export const REVIEWS = [
     city: "Bangalore",
     device: "Dell XPS 15",
     rating: 5,
-    comment: "Sold my 3-year-old Dell XPS 15 to Laptop Buy Back. The agent arrived within 2 hours, ran the diagnostic app, and transferred ₹38,500 directly into my UPI account on the spot!",
+    comment: "Sold my 3-year-old Dell XPS 15 to TheCashX. The agent arrived within 2 hours, ran the diagnostic app, and transferred ₹38,500 directly into my UPI account on the spot!",
     date: "2 days ago"
   },
   {
@@ -116,19 +190,19 @@ export const REVIEWS = [
     city: "Hyderabad",
     device: "Asus ROG Gaming PC",
     rating: 5,
-    comment: "Laptop Buy Back bought our entire batch of 25 office laptops for corporate upgrade. Smooth execution, GST invoice, and instant IMPS settlement.",
+    comment: "TheCashX bought our entire batch of 25 office laptops for corporate upgrade. Smooth execution, GST invoice, and instant IMPS settlement.",
     date: "2 weeks ago"
   }
 ];
 
 export const FAQS = [
   {
-    question: "How do I sell my laptop to Laptop Buy Back?",
-    answer: "Selling your laptop to Laptop Buy Back is super easy: 1) Fill out our 2-minute online valuation form. 2) Get an instant price quote. 3) Schedule a free doorstep pickup at your preferred time. 4) Our field agent inspects your device and pays you instantly via UPI, IMPS, or Cash."
+    question: "How do I sell my device to TheCashX?",
+    answer: "Selling your device to TheCashX is super easy: 1) Select your category (Laptop, Desktop, Monitor, Mac Mini). 2) Get an instant price quote. 3) Schedule a free doorstep pickup at your preferred time. 4) Our field agent inspects your device and pays you instantly via UPI, IMPS, or Cash."
   },
   {
     question: "How is the buyback price calculated?",
-    answer: "Our valuation engine calculates prices based on Brand, Processor (Intel i3/i5/i7/i9, AMD Ryzen, Apple M1/M2/M3), RAM size, Storage (SSD/HDD), screen condition, battery health, cosmetic scratches/dents, and included accessories like the original charger and bill."
+    answer: "Our valuation engine calculates prices based on Brand, Processor, RAM size, Storage (SSD/HDD), screen condition, battery health, cosmetic condition, and included accessories like the original charger and bill."
   },
   {
     question: "Is doorstep pickup really free?",
@@ -155,7 +229,7 @@ export const BLOG_POSTS = [
     category: "Data Security",
     readTime: "5 min read",
     snippet: "Discover step-by-step instructions for backing up your files, signing out of cloud accounts, and executing DoD data destruction.",
-    content: "When selling your old laptop or MacBook, wiping your personal files, browser passwords, bank credentials, and family photos is critical. Learn how Laptop Buy Back guarantees 100% data sanitization."
+    content: "When selling your old device, wiping your personal files, browser passwords, bank credentials, and family photos is critical. Learn how TheCashX guarantees 100% data sanitization."
   },
   {
     id: "best-time-to-sell-laptop",
@@ -173,13 +247,6 @@ export const BLOG_POSTS = [
     snippet: "Maintain your battery cycle count, keep your original Apple box, and use keyboard protectors to secure top tier buyback quotes.",
     content: "MacBooks hold their value better than Windows PCs, but minor screen scratches or high battery cycle counts can reduce quotes. Follow these tips to get the best rate."
   }
-];
-
-export const FIELD_AGENTS = [
-  { id: "agent-101", name: "Suresh Gowda", phone: "+91 89709 00825", city: "Bangalore", activeRequests: 3, completedRequests: 142, rating: 4.9, status: "Active" },
-  { id: "agent-102", name: "Anand Verma", phone: "+91 89709 00825", city: "Bangalore", activeRequests: 2, completedRequests: 98, rating: 4.8, status: "Active" },
-  { id: "agent-103", name: "Karthik Subramanian", phone: "+91 89709 00825", city: "Chennai", activeRequests: 4, completedRequests: 115, rating: 4.9, status: "Active" },
-  { id: "agent-104", name: "Mohammad Razi", phone: "+91 89709 00825", city: "Hyderabad", activeRequests: 1, completedRequests: 86, rating: 4.7, status: "Active" }
 ];
 
 export const INITIAL_REQUESTS = [

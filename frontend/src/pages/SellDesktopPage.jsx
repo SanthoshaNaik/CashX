@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { usePortal } from '../context/PortalContext';
-import { Monitor, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Monitor, CheckCircle2, ArrowRight, ArrowLeft, Truck, ShieldCheck, Calculator } from 'lucide-react';
 import { CITIES } from '../data/portalData';
 
 export const SellDesktopPage = () => {
-  const { createBuybackRequest, currentUser, setAuthModalOpen } = usePortal();
+  const { createBuybackRequest, calculateQuote, currentUser, setAuthModalOpen, navigate } = usePortal();
 
   const [formData, setFormData] = useState({
-    name: '',
-    phone: '',
+    name: currentUser?.fullName || '',
+    phone: currentUser?.phone || '',
     email: '',
     city: 'Bangalore',
     brand: 'Custom PC',
@@ -21,17 +21,43 @@ export const SellDesktopPage = () => {
     expectedPrice: ''
   });
 
+  // Flow State: 'form' | 'quotation' | 'confirmed'
+  const [viewState, setViewState] = useState('form');
+  const [calculatedQuote, setCalculatedQuote] = useState(0);
   const [submitted, setSubmitted] = useState(null);
 
-  const handleSubmit = (e) => {
+  // Automatically fetch & fill logged in user's name and mobile number
+  useEffect(() => {
+    if (currentUser) {
+      setFormData(prev => ({
+        ...prev,
+        name: currentUser.fullName || prev.name,
+        phone: currentUser.phone || prev.phone
+      }));
+    }
+  }, [currentUser]);
+
+  const handleCalculateQuotation = (e) => {
     e.preventDefault();
     if (!currentUser) {
       setAuthModalOpen(true);
       return;
     }
-    const req = createBuybackRequest({ ...formData, deviceType: 'Desktop' });
+    const quote = calculateQuote({ ...formData, deviceType: 'Desktop' });
+    setCalculatedQuote(quote);
+    setViewState('quotation');
+    window.scrollTo({ top: 100, behavior: 'smooth' });
+  };
+
+  const handleAcceptAndBookPickup = () => {
+    if (!currentUser) {
+      setAuthModalOpen(true);
+      return;
+    }
+    const req = createBuybackRequest({ ...formData, deviceType: 'Desktop', expectedPrice: calculatedQuote });
     setSubmitted(req);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setViewState('confirmed');
+    window.scrollTo({ top: 100, behavior: 'smooth' });
   };
 
   return (
@@ -46,46 +72,18 @@ export const SellDesktopPage = () => {
         </div>
       </section>
 
-      {/* Categories */}
-      <section style={{ padding: '2.5rem 0', background: 'var(--bg-pitch)', borderBottom: '1px solid var(--border-subtle)' }}>
-        <div className="container">
-          <div className="grid-4">
-            {[
-              { title: 'Gaming PC', desc: 'Nvidia RTX / AMD Radeon Rigs' },
-              { title: 'Office PC', desc: 'Bulk Brand PCs (Dell OptiPlex, HP)' },
-              { title: 'Workstation', desc: 'Xeon / Threadripper Renders' },
-              { title: 'Custom Build', desc: 'Individual PC Parts & Towers' }
-            ].map(cat => (
-              <div key={cat.title} className="card-dark" style={{ textAlign: 'center', padding: '1.25rem' }}>
-                <Monitor size={28} color="var(--accent-cyan)" style={{ marginBottom: '0.5rem' }} />
-                <h4 style={{ fontSize: '1.1rem' }}>{cat.title}</h4>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{cat.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Form */}
+      {/* Main Flow Section */}
       <section style={{ padding: '4rem 0', background: 'var(--bg-primary)' }}>
         <div className="container" style={{ maxWidth: '800px' }}>
-          {submitted ? (
-            <div className="card-dark" style={{ textAlign: 'center', padding: '3rem 2rem' }}>
-              <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
-                <CheckCircle2 size={36} />
-              </div>
-              <h2 style={{ fontSize: '1.8rem', marginBottom: '0.5rem' }}>Desktop Pickup Scheduled!</h2>
-              <p style={{ color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
-                Request ID: <strong style={{ color: 'var(--accent-gold)' }}>{submitted.id}</strong> • Estimated Value: <strong style={{ color: 'var(--accent-emerald)' }}>₹{submitted.estimatedPrice.toLocaleString()}</strong>
-              </p>
-            </div>
-          ) : (
-            <div className="card-dark">
+          
+          {/* STEP 1: DESKTOP FORM */}
+          {viewState === 'form' && (
+            <div className="card-dark" style={{ padding: '2.5rem 2rem' }}>
               <h3 style={{ fontSize: '1.4rem', marginBottom: '1.5rem', color: 'var(--accent-cyan)' }}>
-                Desktop & Component Buyback Form
+                <Calculator size={20} style={{ display: 'inline', marginRight: '0.4rem' }} /> Desktop Valuation Form
               </h3>
 
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleCalculateQuotation}>
                 <div className="grid-2">
                   <div className="form-group">
                     <label className="form-label">Full Name *</label>
@@ -120,7 +118,7 @@ export const SellDesktopPage = () => {
                 <div className="grid-3">
                   <div className="form-group">
                     <label className="form-label">Processor</label>
-                    <input type="text" className="form-input" placeholder="e.g. Ryzen 7 5800X, Core i7 12700K" value={formData.processor} onChange={e => setFormData({ ...formData, processor: e.target.value })} />
+                    <input type="text" className="form-input" placeholder="e.g. Ryzen 7 5800X, Core i7" value={formData.processor} onChange={e => setFormData({ ...formData, processor: e.target.value })} />
                   </div>
                   <div className="form-group">
                     <label className="form-label">RAM Size</label>
@@ -141,17 +139,199 @@ export const SellDesktopPage = () => {
                   </div>
                 </div>
 
-                <div className="form-group">
+                <div className="form-group" style={{ width: '100%', boxSizing: 'border-box' }}>
                   <label className="form-label">Pickup Address *</label>
-                  <textarea required rows={2} className="form-textarea" placeholder="Full address for desktop pickup" value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })}></textarea>
+                  <textarea 
+                    required 
+                    rows={2} 
+                    className="form-textarea" 
+                    placeholder="Full address for desktop pickup" 
+                    value={formData.address} 
+                    onChange={e => setFormData({ ...formData, address: e.target.value })}
+                    style={{ 
+                      width: '100%', 
+                      maxWidth: '100%', 
+                      boxSizing: 'border-box', 
+                      display: 'block', 
+                      resize: 'none', 
+                      minHeight: '80px', 
+                      maxHeight: '80px' 
+                    }}
+                  ></textarea>
                 </div>
 
-                <button type="submit" className="btn btn-cyan" style={{ width: '100%', padding: '1rem' }}>
-                  Get Desktop Cash Quote <ArrowRight size={18} />
+                <button type="submit" className="btn btn-cyan" style={{ width: '100%', padding: '1rem', justifyContent: 'center' }}>
+                  Calculate Instant Quotation <ArrowRight size={18} />
                 </button>
               </form>
             </div>
           )}
+
+          {/* STEP 2: QUOTATION OFFER & ACCEPTANCE */}
+          {viewState === 'quotation' && (
+            <div className="card-dark" style={{ padding: '2.5rem 2rem' }}>
+              <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+                <span className="badge badge-cyan" style={{ marginBottom: '0.75rem' }}>
+                  OFFICIAL ESTIMATED VALUATION
+                </span>
+                <h2 style={{ fontSize: '1.9rem', color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+                  Your Estimated Quotation
+                </h2>
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
+                  Calculated for your {formData.model} ({formData.processor}, {formData.ram})
+                </p>
+              </div>
+
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%)',
+                border: '1px solid var(--border-glow)',
+                borderRadius: '16px',
+                padding: '2rem 1.5rem',
+                textAlign: 'center',
+                marginBottom: '2rem'
+              }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '0.4rem' }}>
+                  Instant Cash Offer
+                </div>
+                <div style={{
+                  fontSize: 'clamp(2.4rem, 4.5vw, 3.2rem)',
+                  fontWeight: 800,
+                  color: 'var(--accent-cyan)',
+                  letterSpacing: '-0.02em',
+                  lineHeight: 1.1,
+                  marginBottom: '0.5rem'
+                }}>
+                  ₹{calculatedQuote.toLocaleString()}
+                </div>
+                <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+                  ✓ Instant payment via UPI / IMPS upon technician verification
+                </div>
+              </div>
+
+              <div style={{
+                background: 'var(--bg-secondary)',
+                borderRadius: '14px',
+                padding: '1.5rem',
+                marginBottom: '1.75rem',
+                border: '1px solid var(--border-subtle)'
+              }}>
+                <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-main)' }}>
+                  Desktop & Pickup Summary
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', fontSize: '0.9rem' }}>
+                  <div>
+                    <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem' }}>Type</span>
+                    <strong style={{ color: 'var(--text-main)' }}>{formData.model}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem' }}>Processor</span>
+                    <strong style={{ color: 'var(--text-main)' }}>{formData.processor}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem' }}>RAM</span>
+                    <strong style={{ color: 'var(--text-main)' }}>{formData.ram}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem' }}>Condition</span>
+                    <strong style={{ color: 'var(--text-main)' }}>{formData.condition}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem' }}>City</span>
+                    <strong style={{ color: 'var(--text-main)' }}>{formData.city}</strong>
+                  </div>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem' }}>Address</span>
+                    <strong style={{ color: 'var(--text-main)' }}>{formData.address}</strong>
+                  </div>
+                  <div style={{ gridColumn: '1 / -1' }}>
+                    <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.78rem' }}>Contact</span>
+                    <strong style={{ color: 'var(--text-main)' }}>{formData.name} ({formData.phone})</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', marginBottom: '2rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  <Truck size={18} color="var(--accent-cyan)" /> Free Heavy Desktop Pickup
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  <CheckCircle2 size={18} color="var(--accent-emerald)" /> Instant Payout
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                  <ShieldCheck size={18} color="var(--accent-gold)" /> Component Check
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                <button
+                  onClick={handleAcceptAndBookPickup}
+                  className="btn btn-cyan"
+                  style={{ width: '100%', padding: '1.05rem', fontSize: '1rem', fontWeight: 700, justifyContent: 'center' }}
+                >
+                  <CheckCircle2 size={20} /> Accept Quotation & Book Doorstep Pickup
+                </button>
+
+                <button
+                  onClick={() => {
+                    setViewState('form');
+                    window.scrollTo({ top: 100, behavior: 'smooth' });
+                  }}
+                  className="btn btn-outline"
+                  style={{ width: '100%', padding: '0.85rem', fontSize: '0.9rem', justifyContent: 'center' }}
+                >
+                  <ArrowLeft size={16} /> Edit Desktop Details
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3: BOOKING CONFIRMATION */}
+          {viewState === 'confirmed' && submitted && (
+            <div className="card-dark" style={{ textAlign: 'center', padding: '3.5rem 2rem' }}>
+              <div style={{ width: '68px', height: '68px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                <CheckCircle2 size={40} />
+              </div>
+              <span className="badge badge-cyan" style={{ marginBottom: '0.75rem' }}>PICKUP BOOKING CONFIRMED</span>
+              <h2 style={{ fontSize: '2rem', marginBottom: '0.75rem', color: 'var(--text-main)' }}>
+                Desktop Pickup Scheduled!
+              </h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', marginBottom: '1.5rem' }}>
+                Buyback Order ID: <strong style={{ color: 'var(--accent-cyan)' }}>{submitted.id}</strong>
+                <br />
+                Agreed Quotation Amount: <strong style={{ color: 'var(--accent-emerald)', fontSize: '1.2rem' }}>₹{submitted.estimatedPrice.toLocaleString()}</strong>
+              </p>
+
+              <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', padding: '1.25rem', textAlign: 'left', marginBottom: '2rem', fontSize: '0.9rem', border: '1px solid var(--border-subtle)' }}>
+                <div style={{ marginBottom: '0.5rem' }}>
+                  📍 <strong>Pickup Address:</strong> {submitted.customer.address}, {submitted.customer.city}
+                </div>
+                <div>
+                  📞 <strong>Field Agent Assignment:</strong> Our technician will contact <strong>{submitted.customer.phone}</strong> to confirm doorstep inspection timing.
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                <button 
+                  className="btn btn-cyan" 
+                  onClick={() => navigate('/profile')}
+                  style={{ width: '100%', padding: '0.95rem', justifyContent: 'center' }}
+                >
+                  Track My Order Status
+                </button>
+                <button 
+                  className="btn btn-outline" 
+                  onClick={() => {
+                    setSubmitted(null);
+                    setViewState('form');
+                  }}
+                  style={{ width: '100%', padding: '0.85rem', justifyContent: 'center' }}
+                >
+                  Submit Another Desktop Request
+                </button>
+              </div>
+            </div>
+          )}
+
         </div>
       </section>
     </div>

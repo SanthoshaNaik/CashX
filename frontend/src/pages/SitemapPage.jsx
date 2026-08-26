@@ -24,13 +24,13 @@ export const SitemapPage = () => {
                 { label: 'Home Page', path: '/' },
                 { label: 'About Company', path: '/about' },
                 { label: 'Sell Laptop', path: '/sell-laptop' },
-                { label: 'Sell MacBook', path: '/sell-macbook' },
                 { label: 'Sell Desktop', path: '/sell-desktop' },
+                { label: 'Sell Monitor', path: '/sell-monitor' },
+                { label: 'Sell MacMini', path: '/sell-macmini' },
                 { label: 'Services Overview', path: '/services' },
                 { label: 'Frequently Asked Questions', path: '/faq' },
                 { label: 'Contact Us', path: '/contact' },
-                { label: 'Blog & Value Guide', path: '/blog' },
-                { label: 'Admin & Field Agent Portal', path: '/admin' }
+                { label: 'Blog & Value Guide', path: '/blog' }
               ].map(p => (
                 <span key={p.path} onClick={() => navigate(p.path)} style={{ cursor: 'pointer', color: 'var(--text-main)' }}>
                   → {p.label} (`{p.path}`)
