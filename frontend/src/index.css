@@ -1,0 +1,424 @@
+/* ==========================================================================
+   Laptop Buy Back - Dark Elegance Design System & Responsive Rules
+   ========================================================================== */
+
+:root {
+  /* Pitch Dark Black Backgrounds */
+  --bg-pitch: #000000;
+  --bg-primary: #000000;
+  --bg-secondary: #050608;
+  --bg-card: #0c0e14;
+  --bg-card-hover: #141722;
+  --bg-glass: rgba(0, 0, 0, 0.9);
+  
+  /* Light Gray / Metallic Button & Accent System */
+  --btn-light-gray-bg: linear-gradient(135deg, #2a3142 0%, #1e2330 100%);
+  --btn-light-gray-hover: linear-gradient(135deg, #3d465c 0%, #2c3447 100%);
+  --btn-light-gray-border: rgba(255, 255, 255, 0.25);
+  --btn-light-gray-text: #ffffff;
+
+  /* Borders */
+  --border-subtle: rgba(255, 255, 255, 0.14);
+  --border-glow: rgba(255, 255, 255, 0.35);
+  --border-cyan: rgba(255, 255, 255, 0.35);
+  
+  /* Brand Cool Accents (Pure White & Light Platinum Gray) */
+  --accent-gold: #ffffff;
+  --accent-gold-glow: rgba(255, 255, 255, 0.15);
+  --accent-emerald: #ffffff;
+  --accent-emerald-glow: rgba(255, 255, 255, 0.15);
+  --accent-cyan: #f8fafc;
+  --accent-cyan-glow: rgba(255, 255, 255, 0.15);
+  --accent-blue: #cbd5e1;
+  
+  /* Pure White & Light Gray Typography Colors */
+  --text-main: #ffffff;
+  --text-muted: #cbd5e1;
+  --text-dim: #94a3b8;
+  
+  /* Status Colors */
+  --status-new: #ffffff;
+  --status-assigned: #e2e8f0;
+  --status-inspection: #cbd5e1;
+  --status-completed: #34d399;
+  --status-cancelled: #f87171;
+
+  /* Font Families */
+  --font-heading: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* Shadows & Effects */
+  --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.9);
+  --shadow-glow-gold: 0 0 25px rgba(255, 255, 255, 0.18);
+  --shadow-glow-cyan: 0 0 25px rgba(255, 255, 255, 0.18);
+  --shadow-glow-emerald: 0 0 25px rgba(255, 255, 255, 0.18);
+}
+
+/* Reset & Global Standards (Prevents horizontal scrolling) */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: dark;
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  background-color: var(--bg-pitch);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  line-height: 1.6;
+  max-width: 100vw;
+  overflow-x: hidden;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Responsive Media Assets (No distortion, auto-resizing) */
+img, video, iframe {
+  max-width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-style: none;
+  display: block;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: #ffffff;
+  line-height: 1.25;
+  font-weight: 700;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+p, span, div, label, li {
+  color: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  touch-action: manipulation;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+  touch-action: manipulation;
+  color: #ffffff;
+}
+
+/* Touch Device Friendly Forms (Prevents auto-zoom on iOS Safari) */
+input, select, textarea {
+  font-family: inherit;
+  font-size: 16px;
+  min-height: 44px;
+  touch-action: manipulation;
+  color: #ffffff;
+}
+
+::placeholder {
+  color: #94a3b8;
+  opacity: 1;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-pitch);
+}
+::-webkit-scrollbar-thumb {
+  background: #2b3245;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475373;
+}
+
+/* ==========================================================================
+   RESPONSIVE CONTAINER & BREAKPOINT SPECIFICATIONS
+   ========================================================================== */
+
+/* Mobile Devices (320px - 767px) */
+.container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Tablets (768px - 1024px) */
+@media (min-width: 768px) {
+  .container {
+    padding: 0 1.5rem;
+    max-width: 750px;
+  }
+}
+
+/* Desktop 1280px */
+@media (min-width: 1024px) {
+  .container {
+    max-width: 980px;
+  }
+}
+
+/* Desktop 1366px */
+@media (min-width: 1280px) {
+  .container {
+    max-width: 1200px;
+  }
+}
+
+/* Desktop 1440px */
+@media (min-width: 1440px) {
+  .container {
+    max-width: 1360px;
+  }
+}
+
+/* Ultrawide Desktop 1920px */
+@media (min-width: 1920px) {
+  .container {
+    max-width: 1600px;
+  }
+}
+
+/* Navigation Hamburger Switcher Logic */
+.mobile-hamburger {
+  display: none;
+}
+
+@media (max-width: 992px) {
+  .desktop-nav {
+    display: none !important;
+  }
+  .mobile-hamburger {
+    display: inline-flex !important;
+  }
+}
+
+/* Pure White & Light Platinum Typography Gradients */
+.text-gradient-gold {
+  background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 50%, #cbd5e1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-cyan {
+  background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 50%, #cbd5e1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-emerald {
+  background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 50%, #94a3b8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Glass & Card Utility Classes */
+.glass-panel {
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+}
+
+.card-dark {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--shadow-card);
+}
+
+.card-dark:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-glow-gold);
+}
+
+/* Light Gray / Metallic Touch-Friendly Buttons (Distinct from Black Background) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.75rem;
+  min-height: 44px;
+  min-width: 44px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+  touch-action: manipulation;
+}
+
+.btn-gold {
+  background: var(--btn-light-gray-bg);
+  border: 1px solid var(--btn-light-gray-border);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+.btn-gold:hover {
+  background: var(--btn-light-gray-hover);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #ffffff;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.15);
+}
+
+.btn-emerald {
+  background: linear-gradient(135deg, #273043 0%, #1a202c 100%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+}
+.btn-emerald:hover {
+  background: linear-gradient(135deg, #37435d 0%, #242c3d 100%);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.btn-outline {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #f8fafc;
+}
+.btn-outline:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.45);
+  color: #ffffff;
+}
+
+/* Badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.badge-gold {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.badge-emerald {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.badge-cyan {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* Form Controls */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin-bottom: 0.4rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  background: #11141d;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 16px;
+  min-height: 44px;
+  transition: all 0.25s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.45);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
+  background: #171b28;
+}
+
+/* Custom Radio / Checkbox Cards */
+.custom-check-card {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 12px;
+  padding: 1rem;
+  background: #11141d;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.custom-check-card:hover, .custom-check-card.active {
+  border-color: rgba(255, 255, 255, 0.45);
+  background: #1a1f2c;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.12);
+}
+
+/* Responsive Grids */
+.grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.grid-2 { grid-template-columns: repeat(1, 1fr); }
+.grid-3 { grid-template-columns: repeat(1, 1fr); }
+.grid-4 { grid-template-columns: repeat(1, 1fr); }
+
+@media (min-width: 640px) {
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 768px) {
+  .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (min-width: 1024px) {
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* Keyframe Animations */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+.pulse-animation {
+  animation: pulseGlow 2.5s infinite ease-in-out;
+}
