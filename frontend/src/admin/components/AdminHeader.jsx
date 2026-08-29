@@ -3,16 +3,7 @@ import { useAdmin } from '../AdminContext';
 import { Laptop, Package, Users, BarChart3, LogOut, ExternalLink, ShieldCheck, Sun, Moon, CheckCircle2, AlertCircle } from 'lucide-react';
 
 export const AdminHeader = () => {
-  const { adminUser, logout, activeTab, setActiveTab, orders, agents, flashMessage } = useAdmin();
-
-  const [theme, setTheme] = React.useState(() => localStorage.getItem('cashx_theme') || 'dark');
-
-  const toggleTheme = () => {
-    const next = theme === 'dark' ? 'light' : 'dark';
-    setTheme(next);
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem('cashx_theme', next);
-  };
+  const { adminUser, logout, activeTab, setActiveTab, orders, agents, flashMessage, theme, toggleTheme } = useAdmin();
 
   const pendingOrdersCount = orders.filter(o => o.status === 'New Request' || o.status === 'Agent Assigned' || o.status === 'Pickup Scheduled').length;
   const activeAgentsCount = agents.filter(a => a.status === 'Active' || a.status === 'On Duty').length;

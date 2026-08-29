@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { BRANDS, REVIEWS, FAQS, CATEGORIES } from '../data/portalData';
 import { CategoryCards } from '../components/CategoryCards';
+import { CategorySlider } from '../components/CategorySlider';
 
 export const HomePage = () => {
   const { navigate, setValuationModalOpen, setCategoryModalOpen, COMPANY_INFO } = usePortal();
@@ -96,6 +97,15 @@ export const HomePage = () => {
         </div>
       </section>
 
+      {/* PROMOTIONAL CATEGORY SLIDER SECTION */}
+      <section style={{ 
+        padding: '0.5rem 0 3.5rem', 
+        background: 'var(--bg-primary)', 
+        transition: 'background-color 0.3s ease' 
+      }}>
+        <CategorySlider />
+      </section>
+
       {/* PRODUCT CATEGORY CARDS SECTION */}
       <section style={{ 
         padding: '3.75rem 0 4rem', 
@@ -132,7 +142,7 @@ export const HomePage = () => {
       </section>
 
       {/* WHY CHOOSE US / SERVICES */}
-      <section id="services" style={{ padding: '4rem 0', background: 'var(--bg-primary)' }}>
+      <section id="services" style={{ padding: '4rem 0', background: 'var(--bg-primary)', scrollMarginTop: '80px' }}>
         <div className="container">
           <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
             <span style={{ color: 'var(--accent-gold)', fontWeight: 700, fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Why Choose {COMPANY_INFO.name}</span>

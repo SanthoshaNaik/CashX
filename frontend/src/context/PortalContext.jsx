@@ -13,10 +13,9 @@ export const PortalProvider = ({ children }) => {
       parsed.name = "TheCashX";
       parsed.email = "support@thecashx.com";
       parsed.websiteUrl = "https://www.thecashx.com";
-      if (parsed.phone && (parsed.phone.includes('98450') || parsed.phone.includes('12345'))) {
-        parsed.phone = "+91 89709 00825";
-        parsed.whatsapp = "+91 89709 00825";
-      }
+      parsed.phone = "+91 821 746 4709";
+      parsed.whatsapp = "+91 821 746 4709";
+      parsed.address = "NGR complex Arekere Bannerghatta Road Bengaluru pin code 560076";
       localStorage.setItem('laptop_company_info', JSON.stringify(parsed));
       return parsed;
     }
@@ -26,10 +25,10 @@ export const PortalProvider = ({ children }) => {
   // Navigation State
   const [currentRoute, setCurrentRoute] = useState(window.location.hash.replace('#', '') || '/');
 
-  // Theme State ('dark' | 'light')
+  // Theme State ('light' | 'dark')
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('cashx_theme');
-    return saved ? saved : 'dark';
+    return saved ? saved : 'light';
   });
 
   // Auth State
@@ -246,7 +245,7 @@ export const PortalProvider = ({ children }) => {
         email: formData.email || currentUser?.email || '',
         address: formData.address || '',
         city: formData.city || 'Bangalore',
-        pincode: formData.pincode || '560001'
+        pincode: formData.pincode || '560076'
       },
       device: {
         type: formData.deviceType || 'Laptop',

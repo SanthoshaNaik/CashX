@@ -6,13 +6,13 @@ export const DEFAULT_COMPANY_INFO = {
   tagline: "Instant Cash for Used Laptops, Desktops, Monitors & Mac Mini",
   establishedYear: 2026,
   yearsExperience: "24+",
-  phone: "+91 89709 00825",
-  whatsapp: "+91 89709 00825",
+  phone: "+91 821 746 4709",
+  whatsapp: "+91 821 746 4709",
   email: "support@thecashx.com",
   websiteUrl: "https://www.thecashx.com",
-  address: "Main Commercial Complex, Electronics Hub, MG Road, Bangalore - 560001",
+  address: "NGR complex Arekere Bannerghatta Road Bengaluru pin code 560076",
   workingHours: "Mon - Sat: 9:30 AM - 8:00 PM | Sun: 10:00 AM - 4:00 PM",
-  googleMapsUrl: "https://maps.google.com/?q=12.9716,77.5946"
+  googleMapsUrl: "https://maps.google.com/?q=12.8906,77.5975"
 };
 
 export const BRANDS = [
@@ -254,8 +254,8 @@ export const INITIAL_REQUESTS = [
     id: "LB-9821",
     customer: {
       name: "Harish Murthy",
-      phone: "+91 89709 00825",
-      altPhone: "+91 89709 00825",
+      phone: "+91 821 746 4709",
+      altPhone: "+91 821 746 4709",
       email: "harish.m@gmail.com",
       address: "Flat 402, Green View Apartments, Indiranagar",
       city: "Bangalore",
@@ -295,7 +295,7 @@ export const INITIAL_REQUESTS = [
     id: "LB-9822",
     customer: {
       name: "Sneha Patel",
-      phone: "+91 89709 00825",
+      phone: "+91 821 746 4709",
       altPhone: "",
       email: "sneha.p@outlook.com",
       address: "Building 12, Tech Park Enclave, Whitefield",
@@ -327,7 +327,7 @@ export const INITIAL_REQUESTS = [
     id: "LB-9823",
     customer: {
       name: "Deepak Chawla",
-      phone: "+91 89709 00825",
+      phone: "+91 821 746 4709",
       altPhone: "",
       email: "deepak@chawla.in",
       address: "15th Cross, Malleshwaram",

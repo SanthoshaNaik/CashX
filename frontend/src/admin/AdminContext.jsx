@@ -32,6 +32,12 @@ export const AdminProvider = ({ children }) => {
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Theme State ('light' | 'dark')
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem('cashx_theme');
+    return saved ? saved : 'light';
+  });
+
   // Notifications / Flash Message State
   const [flashMessage, setFlashMessage] = useState(null);
 
@@ -40,6 +46,16 @@ export const AdminProvider = ({ children }) => {
     setTimeout(() => {
       setFlashMessage(null);
     }, 4000);
+  };
+
+  // Sync theme to document and localStorage
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('cashx_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
   };
 
   // Sync admin user to localStorage
@@ -250,7 +266,9 @@ export const AdminProvider = ({ children }) => {
       deleteAgent,
       getAgentActiveOrders,
       flashMessage,
-      showNotification
+      showNotification,
+      theme,
+      toggleTheme
     }}>
       {children}
     </AdminContext.Provider>

@@ -2,7 +2,55 @@
    Laptop Buy Back / CashX - Dark & Light (White) Theme System
    ========================================================================== */
 
-:root, [data-theme="dark"] {
+:root, [data-theme="light"] {
+  /* Light Mode Palette (Apple-Style Minimal High-End - Default) */
+  --bg-pitch: #F7F7F5;
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F7F7F5;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #FFFFFF;
+  --bg-glass: rgba(247, 247, 245, 0.92);
+  --header-bg: rgba(255, 255, 255, 0.92);
+  --topbar-bg: #EFEFEA;
+  
+  /* Typography */
+  --text-main: #111111;
+  --text-muted: #6B6B6B;
+  --text-dim: #8E8E93;
+  
+  /* Borders */
+  --border-subtle: #E8E8E8;
+  --border-glow: #D1D5DB;
+  --border-divider: #EEEEEE;
+
+  /* Accents & Buttons */
+  --accent-gold: #111111;
+  --accent-gold-glow: rgba(17, 17, 17, 0.06);
+  --accent-emerald: #059669;
+  --accent-emerald-glow: rgba(5, 150, 105, 0.12);
+  --accent-cyan: #0284c7;
+  --accent-cyan-glow: rgba(2, 132, 199, 0.12);
+
+  --btn-primary-bg: #111111;
+  --btn-primary-hover: #222222;
+  --btn-primary-text: #FFFFFF;
+  --btn-outline-bg: #F0F0EE;
+  --btn-outline-hover: #E4E4E0;
+  --btn-outline-text: #111111;
+  
+  /* Form Inputs */
+  --input-bg: #FFFFFF;
+  --input-border: #E8E8E8;
+  --input-text: #111111;
+  --input-placeholder: #8E8E93;
+
+  /* Shadows (Soft and Natural) */
+  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+  --shadow-card-hover: 0 16px 40px rgba(0, 0, 0, 0.08);
+  --shadow-glow: 0 0 25px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="dark"] {
   /* Dark Mode Palette */
   --bg-pitch: #08090c;
   --bg-primary: #0d0f15;
@@ -48,54 +96,6 @@
   --shadow-card: 0 10px 30px -10px rgba(0, 0, 0, 0.6);
   --shadow-card-hover: 0 20px 40px -10px rgba(0, 0, 0, 0.85);
   --shadow-glow: 0 0 25px rgba(255, 255, 255, 0.08);
-}
-
-[data-theme="light"] {
-  /* Light Mode Palette (Apple-Style Minimal High-End) */
-  --bg-pitch: #F7F7F5;
-  --bg-primary: #FFFFFF;
-  --bg-secondary: #F7F7F5;
-  --bg-card: #FFFFFF;
-  --bg-card-hover: #FFFFFF;
-  --bg-glass: rgba(247, 247, 245, 0.92);
-  --header-bg: rgba(255, 255, 255, 0.92);
-  --topbar-bg: #EFEFEA;
-  
-  /* Typography */
-  --text-main: #111111;
-  --text-muted: #6B6B6B;
-  --text-dim: #8E8E93;
-  
-  /* Borders */
-  --border-subtle: #E8E8E8;
-  --border-glow: #D1D5DB;
-  --border-divider: #EEEEEE;
-
-  /* Accents & Buttons */
-  --accent-gold: #111111;
-  --accent-gold-glow: rgba(17, 17, 17, 0.06);
-  --accent-emerald: #059669;
-  --accent-emerald-glow: rgba(5, 150, 105, 0.12);
-  --accent-cyan: #0284c7;
-  --accent-cyan-glow: rgba(2, 132, 199, 0.12);
-
-  --btn-primary-bg: #111111;
-  --btn-primary-hover: #222222;
-  --btn-primary-text: #FFFFFF;
-  --btn-outline-bg: #F0F0EE;
-  --btn-outline-hover: #E4E4E0;
-  --btn-outline-text: #111111;
-  
-  /* Form Inputs */
-  --input-bg: #FFFFFF;
-  --input-border: #E8E8E8;
-  --input-text: #111111;
-  --input-placeholder: #8E8E93;
-
-  /* Shadows (Soft and Natural) */
-  --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
-  --shadow-card-hover: 0 16px 40px rgba(0, 0, 0, 0.08);
-  --shadow-glow: 0 0 25px rgba(0, 0, 0, 0.04);
 }
 
 /* Reset & Global Standards */
@@ -527,3 +527,59 @@ textarea, .form-textarea {
     transform: scale(1);
   }
 }
+
+@keyframes fadeInSlide {
+  from {
+    opacity: 0.3;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Category Slider Custom Styles & Responsiveness */
+.slider-nav-btn:hover {
+  transform: translateY(-50%) scale(1.08) !important;
+}
+
+.slider-nav-btn:active {
+  transform: translateY(-50%) scale(0.95) !important;
+}
+
+@media (max-width: 860px) {
+  .slider-slide-content {
+    padding: 2rem 2.75rem !important;
+    gap: 1.25rem !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .slider-slide-content {
+    grid-template-columns: 1fr !important;
+    padding: 2rem 1.75rem 1.5rem !important;
+    text-align: center;
+    gap: 1.5rem !important;
+  }
+  .slider-slide-content > div:first-child {
+    align-items: center !important;
+  }
+  .slider-image-container {
+    min-height: 160px !important;
+  }
+  .slider-image-container img {
+    max-height: 170px !important;
+  }
+  .slider-nav-btn {
+    width: 32px !important;
+    height: 40px !important;
+  }
+  .slider-nav-prev {
+    left: 6px !important;
+  }
+  .slider-nav-next {
+    right: 6px !important;
+  }
+}
+

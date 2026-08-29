@@ -59,13 +59,33 @@ export const Footer = () => {
                 { label: 'Sell Monitor', path: '/sell-monitor' },
                 { label: 'Sell Mac Mini', path: '/sell-macmini' },
                 { label: 'About Us', path: '/about' },
-                { label: 'Services', path: '/services' },
+                { 
+                  label: 'Services', 
+                  path: '#services',
+                  onClick: () => {
+                    const sec = document.getElementById('services');
+                    if (sec) {
+                      sec.scrollIntoView({ behavior: 'smooth' });
+                    } else {
+                      navigate('/');
+                      setTimeout(() => {
+                        document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' });
+                      }, 150);
+                    }
+                  }
+                },
                 { label: 'FAQs', path: '/faq' },
                 { label: 'Contact', path: '/contact' }
               ].map((item, idx) => (
                 <span 
                   key={idx}
-                  onClick={() => navigate(item.path)} 
+                  onClick={() => {
+                    if (item.onClick) {
+                      item.onClick();
+                    } else {
+                      navigate(item.path);
+                    }
+                  }} 
                   style={{ 
                     cursor: 'pointer', 
                     transition: 'all 0.2s ease',
