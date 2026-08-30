@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useAdmin } from '../AdminContext';
 import { 
   Users, UserPlus, Search, MapPin, Phone, Mail, Star, CheckCircle2, 
-  AlertCircle, Edit3, Trash2, X, ShieldCheck, Laptop, Building2, Eye
+  AlertCircle, Edit3, Trash2, X, ShieldCheck, Laptop, Building2, Eye, Award, ExternalLink, Calendar
 } from 'lucide-react';
 import { CITIES } from '../../data/portalData';
 
 export const AdminAgentsPage = () => {
-  const { agents, addAgent, updateAgent, deleteAgent, getAgentActiveOrders, orders, setActiveTab } = useAdmin();
+  const { agents, addAgent, updateAgent, deleteAgent, orders, setActiveTab, setSelectedStatus } = useAdmin();
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
@@ -17,6 +17,7 @@ export const AdminAgentsPage = () => {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalAgent, setEditModalAgent] = useState(null);
   const [deleteModalAgent, setDeleteModalAgent] = useState(null);
+  const [viewDossierAgent, setViewDossierAgent] = useState(null);
 
   // Form State for Add / Edit
   const [agentForm, setAgentForm] = useState({
@@ -100,8 +101,12 @@ export const AdminAgentsPage = () => {
     return true;
   });
 
-  // Calculate Metrics
-  const totalCompleted = agents.reduce((acc, curr) => acc + (curr.completedPickups || 0), 0);
+  // Calculate Fleet-wide Metrics in Real Time
+  const totalCompletedOrders = orders.filter(o => o.status === 'Completed').length;
+  const totalCompleted = Math.max(
+    totalCompletedOrders,
+    agents.reduce((acc, curr) => acc + (curr.completedPickups || 0), 0)
+  );
   const activeCount = agents.filter(a => a.status === 'Active' || a.status === 'On Duty').length;
 
   const getStatusBadge = (status) => {
@@ -158,8 +163,8 @@ export const AdminAgentsPage = () => {
 
           <div className="card-dark" style={{ padding: '1.25rem' }}>
             <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Completed Inspections</div>
-            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--accent-cyan)', marginTop: '0.25rem' }}>{totalCompleted}+</div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--accent-cyan)' }}>Total Doorstep Payouts</div>
+            <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--accent-cyan)', marginTop: '0.25rem' }}>{totalCompleted}</div>
+            <div style={{ fontSize: '0.75rem', color: 'var(--accent-cyan)' }}>Live Settled Deals</div>
           </div>
 
           <div className="card-dark" style={{ padding: '1.25rem' }}>
@@ -236,9 +241,12 @@ export const AdminAgentsPage = () => {
             </button>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '1.5rem' }}>
             {filteredAgents.map(agent => {
-              const activeOrders = getAgentActiveOrders(agent.id);
+              const agentCompletedOrders = orders.filter(o => o.assignedAgentId === agent.id && o.status === 'Completed');
+              const liveCompletedPickups = Math.max(agent.completedPickups || 0, agentCompletedOrders.length);
+              const activeOrders = orders.filter(o => o.assignedAgentId === agent.id && o.status !== 'Completed' && o.status !== 'Cancelled');
+              const agentSettledVolume = agentCompletedOrders.reduce((sum, o) => sum + (o.finalOfferPrice || o.estimatedPrice || 0), 0);
 
               return (
                 <div
@@ -307,7 +315,7 @@ export const AdminAgentsPage = () => {
                   </div>
 
                   <div>
-                    {/* Metrics Bar */}
+                    {/* Live Metrics Bar */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 0', borderTop: '1px solid var(--border-subtle)', fontSize: '0.82rem', marginBottom: '1rem' }}>
                       <div>
                         <span style={{ color: 'var(--text-dim)', fontSize: '0.74rem' }}>Rating</span>
@@ -315,7 +323,9 @@ export const AdminAgentsPage = () => {
                       </div>
                       <div>
                         <span style={{ color: 'var(--text-dim)', fontSize: '0.74rem' }}>Completed</span>
-                        <div style={{ fontWeight: 800, color: 'var(--text-main)' }}>{agent.completedPickups || 0} pickups</div>
+                        <div style={{ fontWeight: 800, color: liveCompletedPickups > 0 ? 'var(--accent-emerald)' : 'var(--text-main)' }}>
+                          {liveCompletedPickups} pickups
+                        </div>
                       </div>
                       <div>
                         <span style={{ color: 'var(--text-dim)', fontSize: '0.74rem' }}>Active Tasks</span>
@@ -328,12 +338,22 @@ export const AdminAgentsPage = () => {
                     {/* Action Buttons */}
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
                       <button
+                        onClick={() => setViewDossierAgent(agent)}
+                        className="btn btn-outline"
+                        style={{ flex: 1.2, padding: '0.5rem', fontSize: '0.8rem', justifyContent: 'center', gap: '0.35rem' }}
+                      >
+                        <Eye size={14} /> Profile & Stats
+                      </button>
+
+                      <button
                         onClick={() => handleOpenEditModal(agent)}
                         className="btn btn-outline"
-                        style={{ flex: 1, padding: '0.5rem', fontSize: '0.8rem', justifyContent: 'center' }}
+                        style={{ padding: '0.5rem 0.75rem', fontSize: '0.8rem', justifyContent: 'center' }}
+                        title="Edit Agent"
                       >
-                        <Edit3 size={14} /> Edit Details
+                        <Edit3 size={14} />
                       </button>
+
                       <button
                         onClick={() => setDeleteModalAgent(agent)}
                         className="btn btn-outline"
@@ -352,6 +372,218 @@ export const AdminAgentsPage = () => {
         )}
 
       </div>
+
+      {/* AGENT PROFILE & PERFORMANCE DOSSIER MODAL (ADMIN VIEW) */}
+      {viewDossierAgent && (
+        (() => {
+          const agentOrders = orders.filter(o => o.assignedAgentId === viewDossierAgent.id);
+          const completedOrders = agentOrders.filter(o => o.status === 'Completed');
+          const pendingOrders = agentOrders.filter(o => o.status !== 'Completed' && o.status !== 'Cancelled');
+          const totalSettled = completedOrders.reduce((sum, o) => sum + (o.finalOfferPrice || o.estimatedPrice || 0), 0);
+          const liveCompleted = Math.max(viewDossierAgent.completedPickups || 0, completedOrders.length);
+
+          return (
+            <div style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 1000,
+              background: 'rgba(0,0,0,0.85)',
+              backdropFilter: 'blur(10px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '1rem'
+            }}>
+              <div 
+                className="card-dark"
+                style={{
+                  width: '100%',
+                  maxWidth: '680px',
+                  borderRadius: '24px',
+                  padding: '2rem',
+                  background: 'var(--bg-card)',
+                  border: '1px solid var(--border-subtle)',
+                  boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
+                  position: 'relative',
+                  maxHeight: '90vh',
+                  overflowY: 'auto'
+                }}
+              >
+                <button
+                  onClick={() => setViewDossierAgent(null)}
+                  style={{
+                    position: 'absolute',
+                    top: '1.25rem',
+                    right: '1.25rem',
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-muted)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <X size={20} />
+                </button>
+
+                {/* Profile Header */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                  <div style={{
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '50%',
+                    background: 'var(--btn-primary-bg)',
+                    color: 'var(--btn-primary-text)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1.75rem',
+                    fontWeight: 800
+                  }}>
+                    {viewDossierAgent.name ? viewDossierAgent.name[0] : 'A'}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                      <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                        {viewDossierAgent.name}
+                      </h3>
+                      {getStatusBadge(viewDossierAgent.status)}
+                    </div>
+                    <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                      ID: {viewDossierAgent.id} • {viewDossierAgent.city} Metro Hub ({viewDossierAgent.hub})
+                    </p>
+                  </div>
+                </div>
+
+                {/* Live Real-Time Metrics Cards */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                  <div style={{ background: 'var(--bg-secondary)', padding: '0.85rem', borderRadius: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600 }}>Completed</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--accent-emerald)', marginTop: '0.2rem' }}>
+                      {liveCompleted}
+                    </div>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--accent-emerald)', fontWeight: 600 }}>Live Updated</div>
+                  </div>
+
+                  <div style={{ background: 'var(--bg-secondary)', padding: '0.85rem', borderRadius: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600 }}>Active Tasks</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--accent-gold)', marginTop: '0.2rem' }}>
+                      {pendingOrders.length}
+                    </div>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>In Progress</div>
+                  </div>
+
+                  <div style={{ background: 'var(--bg-secondary)', padding: '0.85rem', borderRadius: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600 }}>Settled Value</div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--accent-cyan)', marginTop: '0.35rem' }}>
+                      ₹{(totalSettled / 1000).toFixed(0)}k
+                    </div>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Total Payout</div>
+                  </div>
+
+                  <div style={{ background: 'var(--bg-secondary)', padding: '0.85rem', borderRadius: '12px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600 }}>Rating</div>
+                    <div style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--accent-gold)', marginTop: '0.2rem' }}>
+                      ⭐ {viewDossierAgent.rating || '4.9'}
+                    </div>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>Quality Score</div>
+                  </div>
+                </div>
+
+                {/* Technician Profile Data */}
+                <div style={{ background: 'var(--bg-secondary)', padding: '1.25rem', borderRadius: '16px', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
+                  <h4 style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                    <Award size={16} color="var(--accent-gold)" /> Technician Operational Details
+                  </h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                    <div>
+                      <span style={{ color: 'var(--text-dim)', fontSize: '0.75rem', display: 'block' }}>Primary Metro Hub</span>
+                      <strong style={{ color: 'var(--text-main)' }}>{viewDossierAgent.city} ({viewDossierAgent.hub})</strong>
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--text-dim)', fontSize: '0.75rem', display: 'block' }}>Category Specialization</span>
+                      <strong style={{ color: 'var(--text-main)' }}>{viewDossierAgent.specialization}</strong>
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--text-dim)', fontSize: '0.75rem', display: 'block' }}>Contact Phone</span>
+                      <strong style={{ color: 'var(--text-main)' }}>{viewDossierAgent.phone}</strong>
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--text-dim)', fontSize: '0.75rem', display: 'block' }}>Portal Password</span>
+                      <code style={{ color: 'var(--accent-emerald)', fontWeight: 700 }}>{viewDossierAgent.password || 'agent123'}</code>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recent Completed Orders by this Agent */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <h4 style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.75rem' }}>
+                    Assigned Pickup Orders ({agentOrders.length})
+                  </h4>
+
+                  {agentOrders.length === 0 ? (
+                    <div style={{ padding: '1.5rem', textAlign: 'center', background: 'var(--bg-secondary)', borderRadius: '12px', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
+                      No orders currently assigned to this technician.
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '180px', overflowY: 'auto' }}>
+                      {agentOrders.map(ord => (
+                        <div
+                          key={ord.id}
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '0.65rem 0.85rem',
+                            background: 'var(--bg-secondary)',
+                            borderRadius: '10px',
+                            fontSize: '0.82rem'
+                          }}
+                        >
+                          <div>
+                            <strong style={{ color: 'var(--accent-gold)' }}>{ord.id}</strong> • {ord.device?.brand} {ord.device?.model || ord.device?.type}
+                            <div style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>Customer: {ord.customer?.name} ({ord.customer?.city})</div>
+                          </div>
+                          <div style={{ textAlign: 'right' }}>
+                            <div style={{ fontWeight: 700, color: 'var(--accent-emerald)' }}>
+                              ₹{(ord.finalOfferPrice || ord.estimatedPrice || 0).toLocaleString('en-IN')}
+                            </div>
+                            <span style={{ fontSize: '0.72rem', color: ord.status === 'Completed' ? 'var(--accent-emerald)' : '#3b82f6', fontWeight: 600 }}>
+                              {ord.status}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <button
+                    onClick={() => {
+                      setViewDossierAgent(null);
+                      handleOpenEditModal(viewDossierAgent);
+                    }}
+                    className="btn btn-outline"
+                    style={{ padding: '0.65rem 1.25rem' }}
+                  >
+                    <Edit3 size={15} /> Edit Agent Details
+                  </button>
+
+                  <button
+                    onClick={() => setViewDossierAgent(null)}
+                    className="btn btn-gold"
+                    style={{ padding: '0.65rem 1.5rem', fontWeight: 700 }}
+                  >
+                    Close Dossier
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })()
+      )}
 
       {/* ADD FIELD AGENT MODAL */}
       {addModalOpen && (

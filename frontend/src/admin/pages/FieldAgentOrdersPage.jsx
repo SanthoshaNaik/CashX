@@ -3,7 +3,7 @@ import { useAdmin } from '../AdminContext';
 import { 
   Package, Search, Filter, MapPin, Phone, MessageSquare, Laptop, Monitor, 
   Tv, Apple, CheckCircle2, Clock, AlertCircle, Calculator, ShieldCheck, 
-  MapPinned, Calendar, ArrowRight, UserCheck, Sparkles, Check
+  MapPinned, Calendar, ArrowRight, UserCheck, Sparkles, Check, User, X, Star, Award
 } from 'lucide-react';
 import { AgentInspectionModal } from '../components/AgentInspectionModal';
 
@@ -16,6 +16,9 @@ export const FieldAgentOrdersPage = () => {
   
   // Inspection Modal State
   const [inspectingOrder, setInspectingOrder] = useState(null);
+
+  // Profile Modal State
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
 
   // Field Agent Scoped Orders: Only orders assigned to this specific agent!
   const myAssignedOrders = orders.filter(o => o.assignedAgentId === adminUser?.agentId);
@@ -74,8 +77,9 @@ export const FieldAgentOrdersPage = () => {
   };
 
   const activeCount = myAssignedOrders.filter(o => o.status !== 'Completed' && o.status !== 'Cancelled').length;
-  const completedCount = myAssignedOrders.filter(o => o.status === 'Completed').length;
-  const totalPayout = myAssignedOrders.filter(o => o.status === 'Completed').reduce((sum, o) => sum + (o.finalOfferPrice || o.estimatedPrice || 0), 0);
+  const completedOrdersList = myAssignedOrders.filter(o => o.status === 'Completed');
+  const completedCount = completedOrdersList.length;
+  const totalPayout = completedOrdersList.reduce((sum, o) => sum + (o.finalOfferPrice || o.estimatedPrice || 0), 0);
 
   return (
     <div style={{ padding: '2rem 0 4rem', background: 'var(--bg-pitch)', minHeight: 'calc(100vh - 80px)' }}>
@@ -108,9 +112,17 @@ export const FieldAgentOrdersPage = () => {
             <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.35rem' }}>
               Welcome, {adminUser?.fullName || 'Field Agent'}
             </h1>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.92rem', marginBottom: '0.75rem' }}>
               Assigned Hub: <strong style={{ color: 'var(--text-main)' }}>{adminUser?.hub || 'Central Electronics Hub'}</strong> ({adminUser?.city || 'Bangalore'}) • Direct Mobile: {adminUser?.phone || '+91 98450 11223'}
             </p>
+
+            <button
+              onClick={() => setProfileModalOpen(true)}
+              className="btn btn-outline"
+              style={{ padding: '0.45rem 0.95rem', fontSize: '0.82rem', gap: '0.4rem', borderRadius: '10px' }}
+            >
+              <User size={14} /> View My Profile & Live Stats
+            </button>
           </div>
 
           {/* Quick Metric Chips */}
@@ -219,73 +231,71 @@ export const FieldAgentOrdersPage = () => {
             <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
               No Assigned Pickups Found
             </h3>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '460px', margin: '0 auto' }}>
-              {myAssignedOrders.length === 0 
-                ? "You have no orders currently assigned by the Operations Admin. Check back once a new client request is dispatched to your hub."
-                : "No orders match your active filter criteria."}
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '440px', margin: '0 auto' }}>
+              {statusFilter !== 'All' 
+                ? `You have no pickup tasks with status "${statusFilter}".` 
+                : 'You have no product pickup requests assigned to your queue yet. When the admin schedules an order to your hub, it will appear here in real time.'}
             </p>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '1.5rem' }}>
             {filteredOrders.map(order => {
               const customerPhone = order.customer?.phone ? order.customer.phone.replace(/[^0-9]/g, '') : '';
-              const finalPrice = order.finalOfferPrice || order.estimatedPrice || order.device?.expectedPrice || 0;
+              const finalPrice = order.finalOfferPrice && order.finalOfferPrice > 0 
+                ? order.finalOfferPrice 
+                : (order.estimatedPrice || order.device?.expectedPrice || 0);
 
               return (
-                <div 
+                <div
                   key={order.id}
                   className="card-dark"
                   style={{
                     padding: '1.75rem',
-                    borderRadius: '20px',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
-                    gap: '1.25rem',
-                    boxShadow: 'var(--shadow-card)',
-                    border: '1px solid var(--border-subtle)',
-                    transition: 'all 0.25s ease'
+                    borderRadius: '20px',
+                    borderTop: order.status === 'Completed' ? '4px solid var(--accent-emerald)' : order.status === 'Inspection in Progress' ? '4px solid var(--accent-gold)' : '4px solid #3b82f6'
                   }}
                 >
-                  {/* Top Bar: Order ID, Category & Status */}
                   <div>
+                    {/* Top Row: ID, Category & Status Badge */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <div style={{
-                          width: '36px',
-                          height: '36px',
+                          width: '38px',
+                          height: '38px',
                           borderRadius: '10px',
                           background: 'var(--bg-secondary)',
+                          border: '1px solid var(--border-subtle)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center'
                         }}>
-                          {getCategoryIcon(order.device?.type)}
+                          {getCategoryIcon(order.device?.type || order.device?.brand)}
                         </div>
                         <div>
-                          <div style={{ fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-main)' }}>
+                          <div style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--accent-gold)' }}>
                             {order.id}
                           </div>
-                          <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                            {order.date || 'Recent Request'}
-                          </span>
+                          <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
+                            Logged: {order.date}
+                          </div>
                         </div>
                       </div>
 
-                      <div>
-                        {getStatusBadge(order.status)}
-                      </div>
+                      {getStatusBadge(order.status)}
                     </div>
 
-                    {/* Customer Information Cardlet */}
+                    {/* Customer Location & Doorstep Details */}
                     <div style={{
                       background: 'var(--bg-secondary)',
-                      borderRadius: '14px',
-                      padding: '1rem',
+                      borderRadius: '12px',
+                      padding: '0.85rem 1rem',
                       marginBottom: '1rem',
                       border: '1px solid var(--border-subtle)'
                     }}>
-                      <div style={{ fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-main)', marginBottom: '0.35rem' }}>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.2rem' }}>
                         {order.customer?.name}
                       </div>
 
@@ -368,14 +378,14 @@ export const FieldAgentOrdersPage = () => {
                         </div>
                       </div>
 
-                      {/* Quick Status Selector */}
+                      {/* Quick Status Dropdown */}
                       <select
                         className="form-select"
-                        style={{ width: 'auto', padding: '0.45rem 0.75rem', fontSize: '0.78rem' }}
                         value={order.status}
                         onChange={e => updateOrderStatus(order.id, e.target.value)}
+                        style={{ fontSize: '0.8rem', padding: '0.35rem 0.65rem', width: 'auto' }}
                       >
-                        <option value="Agent Assigned">Agent Assigned</option>
+                        <option value="Agent Assigned">Assigned to Me</option>
                         <option value="Pickup Scheduled">Pickup Scheduled</option>
                         <option value="Inspection in Progress">Inspection in Progress</option>
                         <option value="Completed">Completed & Paid</option>
@@ -403,6 +413,148 @@ export const FieldAgentOrdersPage = () => {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* FIELD AGENT PROFILE & PERFORMANCE MODAL */}
+        {profileModalOpen && (
+          <div style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 1000,
+            background: 'rgba(0,0,0,0.85)',
+            backdropFilter: 'blur(10px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1rem'
+          }}>
+            <div 
+              className="card-dark"
+              style={{
+                width: '100%',
+                maxWidth: '560px',
+                borderRadius: '24px',
+                padding: '2rem',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-subtle)',
+                boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
+                position: 'relative',
+                maxHeight: '90vh',
+                overflowY: 'auto'
+              }}
+            >
+              <button
+                onClick={() => setProfileModalOpen(false)}
+                style={{
+                  position: 'absolute',
+                  top: '1.25rem',
+                  right: '1.25rem',
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer'
+                }}
+              >
+                <X size={20} />
+              </button>
+
+              {/* Profile Header */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div style={{
+                  width: '60px',
+                  height: '60px',
+                  borderRadius: '50%',
+                  background: 'var(--btn-primary-bg)',
+                  color: 'var(--btn-primary-text)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.6rem',
+                  fontWeight: 800
+                }}>
+                  {adminUser?.fullName ? adminUser.fullName[0] : 'A'}
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+                      {adminUser?.fullName || 'Field Technician'}
+                    </h3>
+                    <span className="badge badge-emerald" style={{ fontSize: '0.72rem' }}>
+                      Certified
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
+                    ID: {adminUser?.agentId || 'agent-hub'} • {adminUser?.city || 'Bangalore'} Metro Hub
+                  </p>
+                </div>
+              </div>
+
+              {/* Live Real-Time Metrics Cards */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem', marginBottom: '1.5rem' }}>
+                <div style={{ background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '14px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600 }}>Completed</div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--accent-emerald)', marginTop: '0.2rem' }}>
+                    {completedCount}
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--accent-emerald)', fontWeight: 600 }}>Live Updated</div>
+                </div>
+
+                <div style={{ background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '14px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600 }}>Pending</div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--accent-gold)', marginTop: '0.2rem' }}>
+                    {activeCount}
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>On-Duty Tasks</div>
+                </div>
+
+                <div style={{ background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '14px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)', textTransform: 'uppercase', fontWeight: 600 }}>Rating</div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--accent-gold)', marginTop: '0.2rem' }}>
+                    ⭐ 4.9
+                  </div>
+                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>Quality Score</div>
+                </div>
+              </div>
+
+              {/* Technician Dossier Details */}
+              <div style={{ background: 'var(--bg-secondary)', padding: '1.25rem', borderRadius: '16px', marginBottom: '1.5rem', fontSize: '0.85rem' }}>
+                <h4 style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <Award size={16} color="var(--accent-gold)" /> Technician Operational Details
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                  <div>
+                    <span style={{ color: 'var(--text-dim)', fontSize: '0.75rem', display: 'block' }}>Primary Metro Hub</span>
+                    <strong style={{ color: 'var(--text-main)' }}>{adminUser?.hub || `${adminUser?.city || 'Bangalore'} Central Hub`}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--text-dim)', fontSize: '0.75rem', display: 'block' }}>Specialization</span>
+                    <strong style={{ color: 'var(--text-main)' }}>{adminUser?.specialization || 'Laptops & MacBooks'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--text-dim)', fontSize: '0.75rem', display: 'block' }}>Contact Phone</span>
+                    <strong style={{ color: 'var(--text-main)' }}>{adminUser?.phone || '+91 98450 11223'}</strong>
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--text-dim)', fontSize: '0.75rem', display: 'block' }}>Total Settled Volume</span>
+                    <strong style={{ color: 'var(--accent-cyan)' }}>₹{totalPayout.toLocaleString('en-IN')}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <button
+                  onClick={() => setProfileModalOpen(false)}
+                  className="btn btn-gold"
+                  style={{ padding: '0.65rem 1.5rem', fontWeight: 700 }}
+                >
+                  Close Dossier
+                </button>
+              </div>
+            </div>
           </div>
         )}
 

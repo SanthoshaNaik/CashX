@@ -184,15 +184,21 @@ export const AdminProvider = ({ children }) => {
     localStorage.setItem('laptop_requests', JSON.stringify(orders));
   }, [orders]);
 
-  // Listen to cross-tab / window storage events and in-tab custom events to update orders in real-time
+  // Listen to cross-tab / window storage events and in-tab custom events to update orders & agents in real-time
   useEffect(() => {
     const handleStorageChange = (e) => {
       if (e.key === 'laptop_requests' && e.newValue) {
         setOrders(JSON.parse(e.newValue));
       }
+      if (e.key === 'cashx_admin_agents' && e.newValue) {
+        setAgents(JSON.parse(e.newValue));
+      }
+      if (e.key === 'cashx_admin_user' && e.newValue) {
+        setAdminUser(JSON.parse(e.newValue));
+      }
     };
 
-    const handleCustomEvent = (e) => {
+    const handleOrdersCustomEvent = (e) => {
       if (e.detail) {
         setOrders(e.detail);
       } else {
@@ -201,11 +207,22 @@ export const AdminProvider = ({ children }) => {
       }
     };
 
+    const handleAgentsCustomEvent = (e) => {
+      if (e.detail) {
+        setAgents(e.detail);
+      } else {
+        const saved = localStorage.getItem('cashx_admin_agents');
+        if (saved) setAgents(JSON.parse(saved));
+      }
+    };
+
     window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('cashx_orders_updated', handleCustomEvent);
+    window.addEventListener('cashx_orders_updated', handleOrdersCustomEvent);
+    window.addEventListener('cashx_agents_updated', handleAgentsCustomEvent);
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('cashx_orders_updated', handleCustomEvent);
+      window.removeEventListener('cashx_orders_updated', handleOrdersCustomEvent);
+      window.removeEventListener('cashx_agents_updated', handleAgentsCustomEvent);
     };
   }, []);
 
@@ -370,8 +387,52 @@ export const AdminProvider = ({ children }) => {
     return true;
   };
 
+  // Record pickup completion on agent's profile in real-time
+  const recordAgentPickupCompletion = (agentId) => {
+    if (!agentId) return;
+
+    // Update agents list
+    setAgents(prevAgents => {
+      const updatedAgents = prevAgents.map(ag => {
+        if (ag.id === agentId) {
+          return {
+            ...ag,
+            completedPickups: (ag.completedPickups || 0) + 1
+          };
+        }
+        return ag;
+      });
+      localStorage.setItem('cashx_admin_agents', JSON.stringify(updatedAgents));
+      window.dispatchEvent(new CustomEvent('cashx_agents_updated', { detail: updatedAgents }));
+      return updatedAgents;
+    });
+
+    // If currently logged in agent is the one who completed it, update session user profile
+    setAdminUser(prevUser => {
+      if (prevUser && (prevUser.agentId === agentId || prevUser.id === agentId)) {
+        const updatedUser = {
+          ...prevUser,
+          completedPickups: (prevUser.completedPickups || 0) + 1
+        };
+        localStorage.setItem('cashx_admin_user', JSON.stringify(updatedUser));
+        return updatedUser;
+      }
+      return prevUser;
+    });
+  };
+
   // Update order lifecycle status
   const updateOrderStatus = (orderId, newStatus, remarks = '') => {
+    const currentOrder = orders.find(o => o.id === orderId);
+    const wasAlreadyCompleted = currentOrder?.status === 'Completed';
+
+    if (newStatus === 'Completed' && !wasAlreadyCompleted) {
+      const targetAgentId = currentOrder?.assignedAgentId || adminUser?.agentId;
+      if (targetAgentId) {
+        recordAgentPickupCompletion(targetAgentId);
+      }
+    }
+
     setOrders(prev => {
       const updated = prev.map(order => {
         if (order.id === orderId) {
@@ -392,6 +453,16 @@ export const AdminProvider = ({ children }) => {
 
   // Comprehensive update from Field Agent On-Site Inspection
   const updateOrderInspection = (orderId, updatedDeviceSpecs, inspectionChecklist, finalQuotation, newStatus = 'Completed', remarks = '') => {
+    const currentOrder = orders.find(o => o.id === orderId);
+    const wasAlreadyCompleted = currentOrder?.status === 'Completed';
+
+    if (newStatus === 'Completed' && !wasAlreadyCompleted) {
+      const targetAgentId = adminUser?.agentId || currentOrder?.assignedAgentId;
+      if (targetAgentId) {
+        recordAgentPickupCompletion(targetAgentId);
+      }
+    }
+
     setOrders(prev => {
       const updated = prev.map(order => {
         if (order.id === orderId) {
