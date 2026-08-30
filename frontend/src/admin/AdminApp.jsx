@@ -5,6 +5,7 @@ import { AdminHeader } from './components/AdminHeader';
 import { AdminOrdersPage } from './pages/AdminOrdersPage';
 import { AdminAgentsPage } from './pages/AdminAgentsPage';
 import { AdminOverviewPage } from './pages/AdminOverviewPage';
+import { FieldAgentOrdersPage } from './pages/FieldAgentOrdersPage';
 
 const AdminContent = () => {
   const { adminUser, activeTab } = useAdmin();
@@ -14,13 +15,23 @@ const AdminContent = () => {
     return <AdminLoginPage />;
   }
 
+  const isFieldAgent = adminUser.role === 'FIELD_AGENT';
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', background: 'var(--bg-pitch)' }}>
       <AdminHeader />
       <main style={{ flex: 1 }}>
-        {activeTab === 'orders' && <AdminOrdersPage />}
-        {activeTab === 'agents' && <AdminAgentsPage />}
-        {activeTab === 'overview' && <AdminOverviewPage />}
+        {isFieldAgent ? (
+          /* Field Agent View: Scoped Pickups & Inspection Console */
+          <FieldAgentOrdersPage />
+        ) : (
+          /* Super Admin View: Full Management */
+          <>
+            {activeTab === 'orders' && <AdminOrdersPage />}
+            {activeTab === 'agents' && <AdminAgentsPage />}
+            {activeTab === 'overview' && <AdminOverviewPage />}
+          </>
+        )}
       </main>
     </div>
   );

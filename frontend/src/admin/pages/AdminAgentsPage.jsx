@@ -23,6 +23,7 @@ export const AdminAgentsPage = () => {
     name: '',
     phone: '',
     email: '',
+    password: 'agent123',
     city: 'Bangalore',
     hub: '',
     specialization: 'Laptops, MacBooks & Apple Silicon',
@@ -34,6 +35,7 @@ export const AdminAgentsPage = () => {
       name: '',
       phone: '',
       email: '',
+      password: 'agent123',
       city: 'Bangalore',
       hub: 'Bangalore - Central Electronics Hub',
       specialization: 'Laptops, MacBooks & Apple Silicon',
@@ -48,6 +50,7 @@ export const AdminAgentsPage = () => {
       name: agent.name,
       phone: agent.phone,
       email: agent.email,
+      password: agent.password || 'agent123',
       city: agent.city,
       hub: agent.hub,
       specialization: agent.specialization,
@@ -100,6 +103,19 @@ export const AdminAgentsPage = () => {
   // Calculate Metrics
   const totalCompleted = agents.reduce((acc, curr) => acc + (curr.completedPickups || 0), 0);
   const activeCount = agents.filter(a => a.status === 'Active' || a.status === 'On Duty').length;
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'Active':
+        return <span className="badge badge-emerald">Active</span>;
+      case 'On Duty':
+        return <span className="badge badge-gold">On Duty</span>;
+      case 'Inactive':
+        return <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>Inactive</span>;
+      default:
+        return <span className="badge badge-gold">{status || 'Active'}</span>;
+    }
+  };
 
   return (
     <div style={{ padding: '2rem 0', background: 'var(--bg-pitch)', minHeight: 'calc(100vh - 80px)' }}>
@@ -190,120 +206,150 @@ export const AdminAgentsPage = () => {
         </div>
 
         {/* Agents Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
-          {filteredAgents.map(agent => {
-            const activeOrders = getAgentActiveOrders(agent.id);
+        {filteredAgents.length === 0 ? (
+          <div className="card-dark" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '20px',
+              background: 'var(--bg-secondary)',
+              color: 'var(--text-muted)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '1rem'
+            }}>
+              <Users size={32} />
+            </div>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+              No Field Agents In Fleet
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', maxWidth: '440px', margin: '0 auto 1.5rem' }}>
+              No field technicians currently added. Onboard technicians to manage doorstep diagnostic inspections and payouts.
+            </p>
+            <button
+              onClick={handleOpenAddModal}
+              className="btn btn-gold"
+              style={{ padding: '0.75rem 1.5rem', fontWeight: 700 }}
+            >
+              <UserPlus size={16} /> Onboard New Field Agent
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
+            {filteredAgents.map(agent => {
+              const activeOrders = getAgentActiveOrders(agent.id);
 
-            return (
-              <div
-                key={agent.id}
-                className="card-dark"
-                style={{
-                  padding: '1.5rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  position: 'relative',
-                  borderTop: agent.status === 'Active' ? '3px solid #10b981' : agent.status === 'On Duty' ? '3px solid var(--accent-gold)' : '3px solid #ef4444'
-                }}
-              >
-                <div>
-                  {/* Card Header: Avatar, Name & Status */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <div style={{
-                        width: '46px',
-                        height: '46px',
-                        borderRadius: '50%',
-                        background: 'rgba(245, 158, 11, 0.15)',
-                        color: 'var(--accent-gold)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontWeight: 800,
-                        fontSize: '1.1rem',
-                        border: '1px solid var(--border-glow)'
-                      }}>
-                        {agent.name[0]}
+              return (
+                <div
+                  key={agent.id}
+                  className="card-dark"
+                  style={{
+                    padding: '1.5rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    position: 'relative',
+                    borderTop: agent.status === 'Active' ? '3px solid #10b981' : agent.status === 'On Duty' ? '3px solid var(--accent-gold)' : '3px solid #ef4444'
+                  }}
+                >
+                  <div>
+                    {/* Card Header: Avatar, Name & Status */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div style={{
+                          width: '46px',
+                          height: '46px',
+                          borderRadius: '50%',
+                          background: 'rgba(245, 158, 11, 0.15)',
+                          color: 'var(--accent-gold)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 800,
+                          fontSize: '1.1rem',
+                          border: '1px solid var(--border-glow)'
+                        }}>
+                          {agent.name ? agent.name[0] : 'A'}
+                        </div>
+                        <div>
+                          <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.1rem' }}>
+                            {agent.name}
+                          </h3>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
+                            ID: {agent.id} • Joined {agent.joinedDate || '2024'}
+                          </div>
+                        </div>
+                      </div>
+
+                      {getStatusBadge(agent.status)}
+                    </div>
+
+                    {/* Hub & Specialization */}
+                    <div style={{ background: 'var(--bg-secondary)', borderRadius: '10px', padding: '0.85rem 1rem', marginBottom: '1rem', border: '1px solid var(--border-subtle)', fontSize: '0.84rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-main)', fontWeight: 600, marginBottom: '0.35rem' }}>
+                        <MapPin size={14} color="var(--accent-gold)" />
+                        <span>{agent.city} ({agent.hub || `${agent.city} Central Hub`})</span>
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                        Expertise: <strong style={{ color: 'var(--text-main)' }}>{agent.specialization}</strong>
+                      </div>
+                    </div>
+
+                    {/* Contact & Login Info */}
+                    <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '1.25rem' }}>
+                      <div>📞 <strong style={{ color: 'var(--text-main)' }}>{agent.phone}</strong></div>
+                      <div>✉️ {agent.email}</div>
+                      <div style={{ fontSize: '0.74rem', background: 'var(--bg-secondary)', padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid var(--border-subtle)', marginTop: '0.2rem' }}>
+                        🔑 Password: <code style={{ color: 'var(--accent-emerald)', fontWeight: 700 }}>{agent.password || 'agent123'}</code>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    {/* Metrics Bar */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 0', borderTop: '1px solid var(--border-subtle)', fontSize: '0.82rem', marginBottom: '1rem' }}>
+                      <div>
+                        <span style={{ color: 'var(--text-dim)', fontSize: '0.74rem' }}>Rating</span>
+                        <div style={{ fontWeight: 800, color: 'var(--accent-gold)' }}>⭐ {agent.rating || '4.9'}</div>
                       </div>
                       <div>
-                        <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.1rem' }}>
-                          {agent.name}
-                        </h3>
-                        <div style={{ fontSize: '0.75rem', color: 'var(--text-dim)' }}>
-                          ID: {agent.id} • Joined {agent.joinedDate || '2024'}
+                        <span style={{ color: 'var(--text-dim)', fontSize: '0.74rem' }}>Completed</span>
+                        <div style={{ fontWeight: 800, color: 'var(--text-main)' }}>{agent.completedPickups || 0} pickups</div>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-dim)', fontSize: '0.74rem' }}>Active Tasks</span>
+                        <div style={{ fontWeight: 800, color: activeOrders.length > 0 ? '#10b981' : 'var(--text-muted)' }}>
+                          {activeOrders.length} active
                         </div>
                       </div>
                     </div>
 
-                    <div>
-                      {agent.status === 'Active' && <span className="badge badge-emerald">Active</span>}
-                      {agent.status === 'On Duty' && <span className="badge badge-gold">On Duty</span>}
-                      {agent.status === 'Inactive' && <span className="badge" style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444' }}>Inactive</span>}
+                    {/* Action Buttons */}
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        onClick={() => handleOpenEditModal(agent)}
+                        className="btn btn-outline"
+                        style={{ flex: 1, padding: '0.5rem', fontSize: '0.8rem', justifyContent: 'center' }}
+                      >
+                        <Edit3 size={14} /> Edit Details
+                      </button>
+                      <button
+                        onClick={() => setDeleteModalAgent(agent)}
+                        className="btn btn-outline"
+                        style={{ padding: '0.5rem 0.75rem', fontSize: '0.8rem', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
+                        title="Remove Field Agent"
+                      >
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   </div>
 
-                  {/* Hub & Specialization */}
-                  <div style={{ background: 'var(--bg-secondary)', borderRadius: '10px', padding: '0.85rem 1rem', marginBottom: '1rem', border: '1px solid var(--border-subtle)', fontSize: '0.84rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-main)', fontWeight: 600, marginBottom: '0.35rem' }}>
-                      <MapPin size={14} color="var(--accent-gold)" />
-                      <span>{agent.city} ({agent.hub})</span>
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                      Expertise: <strong style={{ color: 'var(--text-main)' }}>{agent.specialization}</strong>
-                    </div>
-                  </div>
-
-                  {/* Contact Info */}
-                  <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '1.25rem' }}>
-                    <div>📞 <strong style={{ color: 'var(--text-main)' }}>{agent.phone}</strong></div>
-                    <div>✉️ {agent.email}</div>
-                  </div>
                 </div>
-
-                <div>
-                  {/* Metrics Bar */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 0', borderTop: '1px solid var(--border-subtle)', fontSize: '0.82rem', marginBottom: '1rem' }}>
-                    <div>
-                      <span style={{ color: 'var(--text-dim)', fontSize: '0.74rem' }}>Rating</span>
-                      <div style={{ fontWeight: 800, color: 'var(--accent-gold)' }}>⭐ {agent.rating || '4.9'}</div>
-                    </div>
-                    <div>
-                      <span style={{ color: 'var(--text-dim)', fontSize: '0.74rem' }}>Completed</span>
-                      <div style={{ fontWeight: 800, color: 'var(--text-main)' }}>{agent.completedPickups} pickups</div>
-                    </div>
-                    <div>
-                      <span style={{ color: 'var(--text-dim)', fontSize: '0.74rem' }}>Active Tasks</span>
-                      <div style={{ fontWeight: 800, color: activeOrders > 0 ? '#10b981' : 'var(--text-muted)' }}>
-                        {activeOrders} active
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button
-                      onClick={() => handleOpenEditModal(agent)}
-                      className="btn btn-outline"
-                      style={{ flex: 1, padding: '0.5rem', fontSize: '0.8rem', justifyContent: 'center' }}
-                    >
-                      <Edit3 size={14} /> Edit Details
-                    </button>
-                    <button
-                      onClick={() => setDeleteModalAgent(agent)}
-                      className="btn btn-outline"
-                      style={{ padding: '0.5rem 0.75rem', fontSize: '0.8rem', color: '#ef4444', borderColor: 'rgba(239, 68, 68, 0.3)' }}
-                      title="Remove Field Agent"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </div>
-
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        )}
 
       </div>
 
@@ -357,7 +403,7 @@ export const AdminAgentsPage = () => {
                 Add New Field Agent
               </h3>
               <p style={{ color: 'var(--text-muted)', fontSize: '0.86rem' }}>
-                Enter technician details for dispatch assignment and customer doorstep coordination
+                Register a certified technician with credentials for doorstep inspection & pickup dispatching.
               </p>
             </div>
 
@@ -376,12 +422,12 @@ export const AdminAgentsPage = () => {
 
               <div className="grid-2" style={{ gap: '1rem', marginBottom: '1rem' }}>
                 <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label" style={{ fontSize: '0.85rem' }}>Mobile Number *</label>
+                  <label className="form-label" style={{ fontSize: '0.85rem' }}>Phone Number *</label>
                   <input
                     type="tel"
                     required
                     className="form-input"
-                    placeholder="+91 98450 00000"
+                    placeholder="+91 98450 12345"
                     value={agentForm.phone}
                     onChange={(e) => setAgentForm({ ...agentForm, phone: e.target.value })}
                   />
@@ -404,7 +450,7 @@ export const AdminAgentsPage = () => {
                   <select
                     className="form-select"
                     value={agentForm.city}
-                    onChange={(e) => setAgentForm({ ...agentForm, city: e.target.value, hub: `${e.target.value} Central Hub` })}
+                    onChange={(e) => setAgentForm({ ...agentForm, city: e.target.value, hub: `${e.target.value} Hub` })}
                   >
                     {CITIES.map(c => (
                       <option key={c.id} value={c.name}>{c.name}</option>
@@ -412,31 +458,42 @@ export const AdminAgentsPage = () => {
                   </select>
                 </div>
                 <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label" style={{ fontSize: '0.85rem' }}>Initial Status</label>
-                  <select
-                    className="form-select"
-                    value={agentForm.status}
-                    onChange={(e) => setAgentForm({ ...agentForm, status: e.target.value })}
-                  >
-                    <option value="Active">Active (Available)</option>
-                    <option value="On Duty">On Duty</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
+                  <label className="form-label" style={{ fontSize: '0.85rem' }}>Hub Area / Zone</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. Indiranagar & Koramangala"
+                    value={agentForm.hub}
+                    onChange={(e) => setAgentForm({ ...agentForm, hub: e.target.value })}
+                  />
                 </div>
               </div>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label className="form-label" style={{ fontSize: '0.85rem' }}>Category Specialization</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="e.g. Laptops, MacBooks & Gaming PCs"
-                  value={agentForm.specialization}
-                  onChange={(e) => setAgentForm({ ...agentForm, specialization: e.target.value })}
-                />
+              <div className="grid-2" style={{ gap: '1rem', marginBottom: '1.25rem' }}>
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label" style={{ fontSize: '0.85rem' }}>Category Specialization</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    placeholder="e.g. Laptops & MacBooks"
+                    value={agentForm.specialization}
+                    onChange={(e) => setAgentForm({ ...agentForm, specialization: e.target.value })}
+                  />
+                </div>
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label" style={{ fontSize: '0.85rem' }}>Login Password *</label>
+                  <input
+                    type="text"
+                    required
+                    className="form-input"
+                    placeholder="e.g. agent123"
+                    value={agentForm.password}
+                    onChange={(e) => setAgentForm({ ...agentForm, password: e.target.value })}
+                  />
+                </div>
               </div>
 
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
                 <button
                   type="button"
                   onClick={() => setAddModalOpen(false)}
@@ -450,7 +507,7 @@ export const AdminAgentsPage = () => {
                   className="btn btn-gold"
                   style={{ flex: 2, padding: '0.85rem', justifyContent: 'center' }}
                 >
-                  Create Field Agent
+                  Save & Onboard Agent
                 </button>
               </div>
             </form>
@@ -503,10 +560,13 @@ export const AdminAgentsPage = () => {
             </button>
 
             <div style={{ marginBottom: '1.5rem' }}>
-              <span className="badge badge-gold" style={{ marginBottom: '0.5rem' }}>EDIT AGENT #{editModalAgent.id}</span>
+              <span className="badge badge-gold" style={{ marginBottom: '0.5rem' }}>UPDATE FLEET RECORD</span>
               <h3 style={{ fontSize: '1.4rem', color: 'var(--text-main)', marginBottom: '0.25rem' }}>
-                Update Field Agent Details
+                Edit Agent: {editModalAgent.name}
               </h3>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.86rem' }}>
+                Update contact, metro hub, password or duty status for this agent.
+              </p>
             </div>
 
             <form onSubmit={handleEditSubmit}>
@@ -523,7 +583,7 @@ export const AdminAgentsPage = () => {
 
               <div className="grid-2" style={{ gap: '1rem', marginBottom: '1rem' }}>
                 <div className="form-group" style={{ margin: 0 }}>
-                  <label className="form-label" style={{ fontSize: '0.85rem' }}>Mobile Number *</label>
+                  <label className="form-label" style={{ fontSize: '0.85rem' }}>Phone Number *</label>
                   <input
                     type="tel"
                     required
@@ -570,14 +630,26 @@ export const AdminAgentsPage = () => {
                 </div>
               </div>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label className="form-label" style={{ fontSize: '0.85rem' }}>Category Specialization</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  value={agentForm.specialization}
-                  onChange={(e) => setAgentForm({ ...agentForm, specialization: e.target.value })}
-                />
+              <div className="grid-2" style={{ gap: '1rem', marginBottom: '1.25rem' }}>
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label" style={{ fontSize: '0.85rem' }}>Category Specialization</label>
+                  <input
+                    type="text"
+                    className="form-input"
+                    value={agentForm.specialization}
+                    onChange={(e) => setAgentForm({ ...agentForm, specialization: e.target.value })}
+                  />
+                </div>
+                <div className="form-group" style={{ margin: 0 }}>
+                  <label className="form-label" style={{ fontSize: '0.85rem' }}>Login Password *</label>
+                  <input
+                    type="text"
+                    required
+                    className="form-input"
+                    value={agentForm.password}
+                    onChange={(e) => setAgentForm({ ...agentForm, password: e.target.value })}
+                  />
+                </div>
               </div>
 
               <div style={{ display: 'flex', gap: '0.75rem' }}>

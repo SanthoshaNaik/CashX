@@ -13,7 +13,6 @@ const SLIDES = [
     route: '/sell-laptop',
     image: 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=1200&q=90',
     disclaimer: '*T&C Apply',
-    // Theme gradients
     lightBg: 'linear-gradient(135deg, #d8f5ee 0%, #ebfbf7 50%, #d5f2ea 100%)',
     darkBg: 'linear-gradient(135deg, #0f2b26 0%, #133a34 50%, #0d2420 100%)',
     btnBg: '#2dd4bf',
@@ -86,9 +85,18 @@ const SLIDES = [
   }
 ];
 
+// Infinite loop array: [Clone Last, Slide 1, Slide 2, Slide 3, Slide 4, Clone First]
+const EXTENDED_SLIDES = [
+  { ...SLIDES[SLIDES.length - 1], uniqueKey: 'clone-last' },
+  ...SLIDES.map((s, idx) => ({ ...s, uniqueKey: `real-${s.id}-${idx}` })),
+  { ...SLIDES[0], uniqueKey: 'clone-first' }
+];
+
 export const CategorySlider = () => {
   const { navigate, currentUser, theme } = usePortal();
-  const [currentIdx, setCurrentIdx] = useState(0);
+  // Starts at index 1 (the first real slide)
+  const [currentIdx, setCurrentIdx] = useState(1);
+  const [isTransitioning, setIsTransitioning] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
@@ -97,23 +105,39 @@ export const CategorySlider = () => {
   const isDark = theme === 'dark';
 
   const nextSlide = useCallback(() => {
-    setCurrentIdx((prev) => (prev + 1) % SLIDES.length);
+    setIsTransitioning(true);
+    setCurrentIdx((prev) => prev + 1);
   }, []);
 
   const prevSlide = useCallback(() => {
-    setCurrentIdx((prev) => (prev - 1 + SLIDES.length) % SLIDES.length);
+    setIsTransitioning(true);
+    setCurrentIdx((prev) => prev - 1);
   }, []);
 
-  const goToSlide = (idx) => {
-    setCurrentIdx(idx);
+  const goToSlide = (slideIdx) => {
+    setIsTransitioning(true);
+    setCurrentIdx(slideIdx + 1);
   };
 
-  // Automatic sliding interval
+  // Seamless jump on loop boundaries without animation
+  const handleTransitionEnd = () => {
+    if (currentIdx === EXTENDED_SLIDES.length - 1) {
+      // Reached the clone of first slide -> instantly jump to real first slide (index 1)
+      setIsTransitioning(false);
+      setCurrentIdx(1);
+    } else if (currentIdx === 0) {
+      // Reached the clone of last slide -> instantly jump to real last slide (index 4)
+      setIsTransitioning(false);
+      setCurrentIdx(SLIDES.length);
+    }
+  };
+
+  // Automatic forward sliding interval
   useEffect(() => {
     if (!isPaused) {
       timerRef.current = setInterval(() => {
         nextSlide();
-      }, 4500);
+      }, 4000);
     }
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
@@ -152,7 +176,10 @@ export const CategorySlider = () => {
     navigate(slide.route);
   };
 
-  const currentSlide = SLIDES[currentIdx];
+  // Compute active pagination dot index (0..3)
+  let activeDotIdx = currentIdx - 1;
+  if (currentIdx === 0) activeDotIdx = SLIDES.length - 1;
+  if (currentIdx === EXTENDED_SLIDES.length - 1) activeDotIdx = 0;
 
   return (
     <div 
@@ -177,22 +204,18 @@ export const CategorySlider = () => {
       aria-roledescription="carousel"
       aria-label="Promotional Categories Slider"
     >
-      {/* Outer Slider Box */}
+      {/* Outer Slider Box Container */}
       <div
         className="category-slider-box"
         style={{
           position: 'relative',
           borderRadius: '24px',
           overflow: 'hidden',
-          background: isDark ? currentSlide.darkBg : currentSlide.lightBg,
           border: isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.06)',
           boxShadow: isDark 
             ? '0 10px 30px rgba(0, 0, 0, 0.5)' 
             : '0 10px 30px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03)',
-          transition: 'background 0.6s ease, border-color 0.3s ease, box-shadow 0.3s ease',
-          minHeight: '260px',
-          display: 'flex',
-          alignItems: 'center'
+          background: isDark ? '#0d1117' : '#f8fafc'
         }}
       >
         {/* Navigation Arrow Left */}
@@ -202,26 +225,26 @@ export const CategorySlider = () => {
           aria-label="Previous Slide"
           style={{
             position: 'absolute',
-            left: '12px',
+            left: '14px',
             top: '50%',
             transform: 'translateY(-50%)',
             zIndex: 10,
-            width: '38px',
-            height: '48px',
+            width: '40px',
+            height: '52px',
             borderRadius: '12px',
             border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.08)',
-            background: isDark ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.88)',
-            backdropFilter: 'blur(8px)',
+            background: isDark ? 'rgba(15, 23, 42, 0.82)' : 'rgba(255, 255, 255, 0.92)',
+            backdropFilter: 'blur(10px)',
             color: isDark ? '#f8fafc' : '#0f172a',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.12)',
+            boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
             transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
           }}
         >
-          <ChevronLeft size={20} strokeWidth={2.5} />
+          <ChevronLeft size={22} strokeWidth={2.5} />
         </button>
 
         {/* Navigation Arrow Right */}
@@ -231,156 +254,184 @@ export const CategorySlider = () => {
           aria-label="Next Slide"
           style={{
             position: 'absolute',
-            right: '12px',
+            right: '14px',
             top: '50%',
             transform: 'translateY(-50%)',
             zIndex: 10,
-            width: '38px',
-            height: '48px',
+            width: '40px',
+            height: '52px',
             borderRadius: '12px',
             border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid rgba(0, 0, 0, 0.08)',
-            background: isDark ? 'rgba(15, 23, 42, 0.75)' : 'rgba(255, 255, 255, 0.88)',
-            backdropFilter: 'blur(8px)',
+            background: isDark ? 'rgba(15, 23, 42, 0.82)' : 'rgba(255, 255, 255, 0.92)',
+            backdropFilter: 'blur(10px)',
             color: isDark ? '#f8fafc' : '#0f172a',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: 'pointer',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.12)',
+            boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
             transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
           }}
         >
-          <ChevronRight size={20} strokeWidth={2.5} />
+          <ChevronRight size={22} strokeWidth={2.5} />
         </button>
 
-        {/* Slide Content Grid */}
-        <div 
-          key={currentSlide.id}
-          className="slider-slide-content"
+        {/* Continuous Seamless Infinite Horizontal Sliding Track */}
+        <div
+          className="slider-track"
+          onTransitionEnd={handleTransitionEnd}
           style={{
+            display: 'flex',
             width: '100%',
-            padding: '2.5rem 3.5rem',
-            display: 'grid',
-            gridTemplateColumns: '1.2fr 1fr',
-            alignItems: 'center',
-            gap: '2rem',
-            position: 'relative',
-            animation: 'fadeInSlide 0.45s cubic-bezier(0.16, 1, 0.3, 1)'
+            transform: `translateX(-${currentIdx * 100}%)`,
+            transition: isTransitioning ? 'transform 0.65s cubic-bezier(0.25, 1, 0.5, 1)' : 'none',
+            willChange: 'transform'
           }}
         >
-          {/* Left Side: Typography & Action */}
-          <div style={{ zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-            
-            {/* Title / Main Headline */}
-            <h2
-              style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: 'clamp(1.75rem, 3.2vw, 2.75rem)',
-                fontWeight: 800,
-                lineHeight: 1.15,
-                letterSpacing: '-0.03em',
-                color: isDark ? currentSlide.darkTextColor : currentSlide.textColor,
-                marginBottom: '1rem',
-                transition: 'color 0.3s ease'
-              }}
-            >
-              {currentSlide.title}
-            </h2>
+          {EXTENDED_SLIDES.map((slide) => {
+            return (
+              <div
+                key={slide.uniqueKey}
+                className="slider-slide-item"
+                style={{
+                  minWidth: '100%',
+                  width: '100%',
+                  flexShrink: 0,
+                  background: isDark ? slide.darkBg : slide.lightBg,
+                  display: 'flex',
+                  alignItems: 'center',
+                  minHeight: '270px'
+                }}
+              >
+                <div
+                  className="slider-slide-content"
+                  style={{
+                    width: '100%',
+                    padding: '2.5rem 3.75rem',
+                    display: 'grid',
+                    gridTemplateColumns: '1.2fr 1fr',
+                    alignItems: 'center',
+                    gap: '2rem',
+                    position: 'relative'
+                  }}
+                >
+                  {/* Left Side: Typography & Action */}
+                  <div style={{ zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                    
+                    {/* Title / Main Headline */}
+                    <h2
+                      style={{
+                        fontFamily: 'var(--font-heading)',
+                        fontSize: 'clamp(1.75rem, 3.2vw, 2.75rem)',
+                        fontWeight: 800,
+                        lineHeight: 1.15,
+                        letterSpacing: '-0.03em',
+                        color: isDark ? slide.darkTextColor : slide.textColor,
+                        marginBottom: '1rem',
+                        transition: 'color 0.3s ease'
+                      }}
+                    >
+                      {slide.title}
+                    </h2>
 
-            {/* Subtitle / Description */}
-            <p
-              style={{
-                fontSize: 'clamp(0.95rem, 1.4vw, 1.15rem)',
-                fontWeight: 500,
-                lineHeight: 1.5,
-                color: isDark ? currentSlide.darkSubtextColor : currentSlide.subtextColor,
-                marginBottom: '1.75rem',
-                maxWidth: '480px',
-                transition: 'color 0.3s ease'
-              }}
-            >
-              {currentSlide.subtitle}
-            </p>
+                    {/* Subtitle / Description */}
+                    <p
+                      style={{
+                        fontSize: 'clamp(0.95rem, 1.4vw, 1.15rem)',
+                        fontWeight: 500,
+                        lineHeight: 1.5,
+                        color: isDark ? slide.darkSubtextColor : slide.subtextColor,
+                        marginBottom: '1.75rem',
+                        maxWidth: '480px',
+                        transition: 'color 0.3s ease'
+                      }}
+                    >
+                      {slide.subtitle}
+                    </p>
 
-            {/* CTA Button */}
-            <button
-              onClick={() => handleAction(currentSlide)}
-              className="slider-cta-btn"
-              style={{
-                background: currentSlide.btnBg,
-                color: currentSlide.btnTextColor,
-                fontWeight: 700,
-                fontSize: '1rem',
-                padding: '0.85rem 1.85rem',
-                borderRadius: '12px',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.12)',
-                transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = currentSlide.btnHoverBg;
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.18)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = currentSlide.btnBg;
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 14px rgba(0, 0, 0, 0.12)';
-              }}
-            >
-              {currentSlide.buttonText}
-              <ArrowRight size={18} strokeWidth={2.5} />
-            </button>
-          </div>
+                    {/* CTA Button */}
+                    <button
+                      onClick={() => handleAction(slide)}
+                      className="slider-cta-btn"
+                      style={{
+                        background: slide.btnBg,
+                        color: slide.btnTextColor,
+                        fontWeight: 700,
+                        fontSize: '1rem',
+                        padding: '0.85rem 1.85rem',
+                        borderRadius: '12px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        boxShadow: '0 4px 14px rgba(0, 0, 0, 0.12)',
+                        transition: 'all 0.25s cubic-bezier(0.16, 1, 0.3, 1)'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = slide.btnHoverBg;
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.18)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = slide.btnBg;
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 4px 14px rgba(0, 0, 0, 0.12)';
+                      }}
+                    >
+                      {slide.buttonText}
+                      <ArrowRight size={18} strokeWidth={2.5} />
+                    </button>
+                  </div>
 
-          {/* Right Side: Product Showcase Image & Disclaimer */}
-          <div 
-            className="slider-image-container"
-            style={{ 
-              position: 'relative', 
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'center',
-              height: '100%',
-              minHeight: '200px'
-            }}
-          >
-            <img
-              src={currentSlide.image}
-              alt={currentSlide.title}
-              style={{
-                maxWidth: '100%',
-                maxHeight: '220px',
-                objectFit: 'contain',
-                borderRadius: '16px',
-                filter: isDark 
-                  ? 'drop-shadow(0 15px 30px rgba(0, 0, 0, 0.6))' 
-                  : 'drop-shadow(0 15px 25px rgba(0, 0, 0, 0.15))',
-                transform: 'scale(1)',
-                transition: 'transform 0.5s ease'
-              }}
-              loading="eager"
-            />
+                  {/* Right Side: Product Showcase Image & Disclaimer */}
+                  <div 
+                    className="slider-image-container"
+                    style={{ 
+                      position: 'relative', 
+                      display: 'flex', 
+                      justifyContent: 'center', 
+                      alignItems: 'center',
+                      height: '100%',
+                      minHeight: '200px'
+                    }}
+                  >
+                    <img
+                      src={slide.image}
+                      alt={slide.title}
+                      style={{
+                        maxWidth: '100%',
+                        maxHeight: '220px',
+                        objectFit: 'contain',
+                        borderRadius: '16px',
+                        filter: isDark 
+                          ? 'drop-shadow(0 15px 30px rgba(0, 0, 0, 0.6))' 
+                          : 'drop-shadow(0 15px 25px rgba(0, 0, 0, 0.15))',
+                        transform: 'scale(1)',
+                        transition: 'transform 0.5s ease'
+                      }}
+                      loading="eager"
+                    />
 
-            {/* Subtle T&C / Tag */}
-            <span
-              style={{
-                position: 'absolute',
-                bottom: '-0.75rem',
-                right: '0',
-                fontSize: '0.75rem',
-                fontWeight: 500,
-                color: isDark ? 'rgba(255, 255, 255, 0.45)' : 'rgba(0, 0, 0, 0.45)',
-                letterSpacing: '0.02em'
-              }}
-            >
-              {currentSlide.disclaimer}
-            </span>
-          </div>
+                    {/* Subtle T&C / Tag */}
+                    <span
+                      style={{
+                        position: 'absolute',
+                        bottom: '-0.75rem',
+                        right: '0',
+                        fontSize: '0.75rem',
+                        fontWeight: 500,
+                        color: isDark ? 'rgba(255, 255, 255, 0.45)' : 'rgba(0, 0, 0, 0.45)',
+                        letterSpacing: '0.02em'
+                      }}
+                    >
+                      {slide.disclaimer}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -396,7 +447,7 @@ export const CategorySlider = () => {
         }}
       >
         {SLIDES.map((s, idx) => {
-          const isActive = idx === currentIdx;
+          const isActive = idx === activeDotIdx;
           return (
             <button
               key={s.id}
@@ -408,11 +459,11 @@ export const CategorySlider = () => {
                 borderRadius: '9999px',
                 background: isActive 
                   ? (isDark ? '#f8fafc' : '#1e293b') 
-                  : (isDark ? 'rgba(255, 255, 255, 0.2)' : 'rgba(0, 0, 0, 0.16)'),
+                  : (isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.18)'),
                 border: 'none',
                 cursor: 'pointer',
                 padding: 0,
-                transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+                transition: 'all 0.35s cubic-bezier(0.25, 1, 0.5, 1)'
               }}
             />
           );

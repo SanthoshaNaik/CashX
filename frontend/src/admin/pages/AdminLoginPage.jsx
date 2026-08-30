@@ -41,6 +41,12 @@ export const AdminLoginPage = () => {
     setErrorMsg('');
   };
 
+  const handleFillAgentDemo = () => {
+    setEmail('suresh.gowda@thecashx.com');
+    setPassword('agent123');
+    setErrorMsg('');
+  };
+
   const handleForgotSubmit = (e) => {
     e.preventDefault();
     setForgotError('');
@@ -291,31 +297,59 @@ export const AdminLoginPage = () => {
           </button>
         </form>
 
-        {/* Quick Demo Credentials Fill Button */}
-        <div style={{ marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid #e2e8f0', textAlign: 'center' }}>
-          <button
-            type="button"
-            onClick={handleFillDemo}
-            style={{
-              width: '100%',
-              padding: '0.65rem',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              background: '#f8fafc',
-              color: '#334155',
-              border: '1px solid #cbd5e1',
-              borderRadius: '10px',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.4rem'
-            }}
-          >
-            <KeyRound size={15} /> Quick Fill Demo Admin Credentials
-          </button>
-          <div style={{ fontSize: '0.74rem', color: '#64748b', marginTop: '0.5rem' }}>
-            Demo: <code style={{ background: '#f1f5f9', padding: '0.1rem 0.3rem', borderRadius: '4px', color: '#0f172a' }}>admin@thecashx.com</code> / <code style={{ background: '#f1f5f9', padding: '0.1rem 0.3rem', borderRadius: '4px', color: '#0f172a' }}>admin123</code>
+        {/* Quick Demo Credentials Fill Buttons */}
+        <div style={{ marginTop: '1.5rem', paddingTop: '1.25rem', borderTop: '1px solid #e2e8f0' }}>
+          <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#475569', marginBottom: '0.65rem', textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            Quick Demo Logins
+          </div>
+          
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+            <button
+              type="button"
+              onClick={handleFillDemo}
+              style={{
+                padding: '0.6rem',
+                fontSize: '0.78rem',
+                fontWeight: 600,
+                background: '#f8fafc',
+                color: '#0f172a',
+                border: '1px solid #cbd5e1',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.35rem'
+              }}
+            >
+              <KeyRound size={14} /> Super Admin
+            </button>
+
+            <button
+              type="button"
+              onClick={handleFillAgentDemo}
+              style={{
+                padding: '0.6rem',
+                fontSize: '0.78rem',
+                fontWeight: 600,
+                background: '#f0fdf4',
+                color: '#15803d',
+                border: '1px solid #bbf7d0',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.35rem'
+              }}
+            >
+              <ShieldCheck size={14} /> Field Agent
+            </button>
+          </div>
+
+          <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.65rem', textAlign: 'center', lineHeight: 1.4 }}>
+            Admin: <code>admin@thecashx.com</code> (admin123)<br />
+            Agent: <code>suresh.gowda@thecashx.com</code> (agent123)
           </div>
         </div>
       </div>

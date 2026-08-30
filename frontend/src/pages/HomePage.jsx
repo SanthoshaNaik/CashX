@@ -14,10 +14,19 @@ export const HomePage = () => {
 
   return (
     <div>
+      {/* PROMOTIONAL CATEGORY SLIDER SECTION (TOP HERO BANNER) */}
+      <section style={{ 
+        padding: '2rem 0 1.5rem', 
+        background: 'var(--bg-primary)', 
+        transition: 'background-color 0.3s ease' 
+      }}>
+        <CategorySlider />
+      </section>
+
       {/* HERO SECTION */}
       <section style={{
         position: 'relative',
-        padding: '5rem 0 4rem',
+        padding: '2.5rem 0 4rem',
         background: 'var(--bg-primary)',
         overflow: 'hidden',
         transition: 'background-color 0.3s ease'
@@ -95,15 +104,6 @@ export const HomePage = () => {
 
           </div>
         </div>
-      </section>
-
-      {/* PROMOTIONAL CATEGORY SLIDER SECTION */}
-      <section style={{ 
-        padding: '0.5rem 0 3.5rem', 
-        background: 'var(--bg-primary)', 
-        transition: 'background-color 0.3s ease' 
-      }}>
-        <CategorySlider />
       </section>
 
       {/* PRODUCT CATEGORY CARDS SECTION */}

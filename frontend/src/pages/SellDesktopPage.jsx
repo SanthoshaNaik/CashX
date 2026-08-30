@@ -64,8 +64,8 @@ export const SellDesktopPage = () => {
     <div>
       <section style={{ padding: '4rem 0 3rem', background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-subtle)', textAlign: 'center' }}>
         <div className="container">
-          <span className="badge badge-cyan" style={{ marginBottom: '0.75rem' }}>COMPONENT-BASED EVALUATION</span>
-          <h1 style={{ fontSize: '2.8rem', marginBottom: '1rem' }}>Sell Your <span className="text-gradient-cyan">Desktop PC & Gaming Rig</span></h1>
+          <span className="badge badge-gold" style={{ marginBottom: '0.75rem' }}>COMPONENT-BASED EVALUATION</span>
+          <h1 style={{ fontSize: '2.8rem', marginBottom: '1rem' }}>Sell Your <span className="text-gradient-gold">Desktop PC & Gaming Rig</span></h1>
           <p style={{ color: 'var(--text-muted)', maxWidth: '650px', margin: '0 auto', fontSize: '1.05rem' }}>
             We buy custom gaming PCs, editing workstations, AiO PCs, and office desktop setups with full component valuation (GPU, CPU, Motherboard).
           </p>
@@ -79,7 +79,7 @@ export const SellDesktopPage = () => {
           {/* STEP 1: DESKTOP FORM */}
           {viewState === 'form' && (
             <div className="card-dark" style={{ padding: '2.5rem 2rem' }}>
-              <h3 style={{ fontSize: '1.4rem', marginBottom: '1.5rem', color: 'var(--accent-cyan)' }}>
+              <h3 style={{ fontSize: '1.4rem', marginBottom: '1.5rem', color: 'var(--accent-gold)' }}>
                 <Calculator size={20} style={{ display: 'inline', marginRight: '0.4rem' }} /> Desktop Valuation Form
               </h3>
 
@@ -105,36 +105,57 @@ export const SellDesktopPage = () => {
                     </select>
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Category</label>
+                    <label className="form-label">Desktop Type *</label>
                     <select className="form-select" value={formData.model} onChange={e => setFormData({ ...formData, model: e.target.value })}>
-                      <option value="Gaming PC">Gaming PC (RTX/GTX GPU)</option>
-                      <option value="Office PC">Office Desktop PC</option>
-                      <option value="Workstation">Heavy Workstation</option>
-                      <option value="Custom Build">Custom Tower</option>
+                      <option value="Gaming PC Rig">Custom Gaming PC Rig (Dedicated GPU)</option>
+                      <option value="All-in-One PC">All-in-One PC (HP / Dell / Lenovo / Apple iMac)</option>
+                      <option value="Workstation Tower">Professional Workstation (Render / Video Editing)</option>
+                      <option value="Pre-built Office Tower">Standard Office Desktop Tower</option>
+                      <option value="Mini PC / NUC">Mini PC / Intel NUC</option>
                     </select>
                   </div>
                 </div>
 
-                <div className="grid-3">
+                <div className="grid-2">
                   <div className="form-group">
-                    <label className="form-label">Processor</label>
-                    <input type="text" className="form-input" placeholder="e.g. Ryzen 7 5800X, Core i7" value={formData.processor} onChange={e => setFormData({ ...formData, processor: e.target.value })} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">RAM Size</label>
-                    <select className="form-select" value={formData.ram} onChange={e => setFormData({ ...formData, ram: e.target.value })}>
-                      <option value="8GB">8 GB</option>
-                      <option value="16GB">16 GB</option>
-                      <option value="32GB">32 GB</option>
-                      <option value="64GB+">64 GB+</option>
+                    <label className="form-label">Processor / CPU *</label>
+                    <select className="form-select" value={formData.processor} onChange={e => setFormData({ ...formData, processor: e.target.value })}>
+                      <option value="AMD Ryzen 9 / Intel Core i9">Intel Core i9 / AMD Ryzen 9</option>
+                      <option value="AMD Ryzen 7 / Intel Core i7">Intel Core i7 / AMD Ryzen 7</option>
+                      <option value="AMD Ryzen 5 / Intel Core i5">Intel Core i5 / AMD Ryzen 5</option>
+                      <option value="AMD Ryzen 3 / Intel Core i3">Intel Core i3 / AMD Ryzen 3</option>
                     </select>
                   </div>
                   <div className="form-group">
-                    <label className="form-label">Condition</label>
+                    <label className="form-label">System RAM *</label>
+                    <select className="form-select" value={formData.ram} onChange={e => setFormData({ ...formData, ram: e.target.value })}>
+                      <option value="8GB">8 GB DDR4 / DDR5</option>
+                      <option value="16GB">16 GB DDR4 / DDR5</option>
+                      <option value="32GB">32 GB DDR4 / DDR5</option>
+                      <option value="64GB">64 GB DDR4 / DDR5</option>
+                      <option value="128GB+">128 GB+ High Capacity</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid-2">
+                  <div className="form-group">
+                    <label className="form-label">Storage Capacity *</label>
+                    <select className="form-select" value={formData.storage} onChange={e => setFormData({ ...formData, storage: e.target.value })}>
+                      <option value="512GB SSD">512GB NVMe SSD</option>
+                      <option value="1TB SSD">1TB NVMe SSD</option>
+                      <option value="2TB+ SSD">2TB+ NVMe SSD</option>
+                      <option value="1TB HDD + 256GB SSD">1TB HDD + 256GB SSD</option>
+                      <option value="1TB HDD only">1TB HDD only</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Overall Condition *</label>
                     <select className="form-select" value={formData.condition} onChange={e => setFormData({ ...formData, condition: e.target.value })}>
-                      <option value="Excellent">Excellent</option>
-                      <option value="Good">Good</option>
-                      <option value="Average">Average</option>
+                      <option value="Excellent">Excellent - Like new, fully functional</option>
+                      <option value="Good">Good - Minor cosmetic wear, 100% working</option>
+                      <option value="Average">Average - Scratches on cabinet, functioning</option>
+                      <option value="Damaged">Damaged - Component issues or non-booting</option>
                     </select>
                   </div>
                 </div>
@@ -160,7 +181,12 @@ export const SellDesktopPage = () => {
                   ></textarea>
                 </div>
 
-                <button type="submit" className="btn btn-cyan" style={{ width: '100%', padding: '1rem', justifyContent: 'center' }}>
+                {/* Calculate Instant Quotation Button (Styled consistently with other category pages) */}
+                <button 
+                  type="submit" 
+                  className="btn btn-gold" 
+                  style={{ width: '100%', marginTop: '1rem', padding: '1rem', justifyContent: 'center' }}
+                >
                   Calculate Instant Quotation <ArrowRight size={18} />
                 </button>
               </form>
@@ -171,7 +197,7 @@ export const SellDesktopPage = () => {
           {viewState === 'quotation' && (
             <div className="card-dark" style={{ padding: '2.5rem 2rem' }}>
               <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-                <span className="badge badge-cyan" style={{ marginBottom: '0.75rem' }}>
+                <span className="badge badge-gold" style={{ marginBottom: '0.75rem' }}>
                   OFFICIAL ESTIMATED VALUATION
                 </span>
                 <h2 style={{ fontSize: '1.9rem', color: 'var(--text-main)', marginBottom: '0.5rem' }}>
@@ -196,12 +222,12 @@ export const SellDesktopPage = () => {
                 <div style={{
                   fontSize: 'clamp(2.4rem, 4.5vw, 3.2rem)',
                   fontWeight: 800,
-                  color: 'var(--accent-cyan)',
+                  color: 'var(--accent-emerald)',
                   letterSpacing: '-0.02em',
                   lineHeight: 1.1,
                   marginBottom: '0.5rem'
                 }}>
-                  ₹{calculatedQuote.toLocaleString()}
+                  ₹{calculatedQuote.toLocaleString('en-IN')}
                 </div>
                 <div style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
                   ✓ Instant payment via UPI / IMPS upon technician verification
@@ -252,7 +278,7 @@ export const SellDesktopPage = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                  <Truck size={18} color="var(--accent-cyan)" /> Free Heavy Desktop Pickup
+                  <Truck size={18} color="var(--accent-gold)" /> Free Heavy Desktop Pickup
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.75rem', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
                   <CheckCircle2 size={18} color="var(--accent-emerald)" /> Instant Payout
@@ -265,7 +291,7 @@ export const SellDesktopPage = () => {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                 <button
                   onClick={handleAcceptAndBookPickup}
-                  className="btn btn-cyan"
+                  className="btn btn-gold"
                   style={{ width: '100%', padding: '1.05rem', fontSize: '1rem', fontWeight: 700, justifyContent: 'center' }}
                 >
                   <CheckCircle2 size={20} /> Accept Quotation & Book Doorstep Pickup
@@ -291,42 +317,21 @@ export const SellDesktopPage = () => {
               <div style={{ width: '68px', height: '68px', borderRadius: '50%', background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
                 <CheckCircle2 size={40} />
               </div>
-              <span className="badge badge-cyan" style={{ marginBottom: '0.75rem' }}>PICKUP BOOKING CONFIRMED</span>
+              <span className="badge badge-gold" style={{ marginBottom: '0.75rem' }}>PICKUP BOOKING CONFIRMED</span>
               <h2 style={{ fontSize: '2rem', marginBottom: '0.75rem', color: 'var(--text-main)' }}>
                 Desktop Pickup Scheduled!
               </h2>
               <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', marginBottom: '1.5rem' }}>
-                Buyback Order ID: <strong style={{ color: 'var(--accent-cyan)' }}>{submitted.id}</strong>
+                Buyback Order ID: <strong style={{ color: 'var(--accent-gold)' }}>{submitted.id}</strong>
                 <br />
-                Agreed Quotation Amount: <strong style={{ color: 'var(--accent-emerald)', fontSize: '1.2rem' }}>₹{submitted.estimatedPrice.toLocaleString()}</strong>
+                A certified desktop technician will review and visit your location in <strong>{formData.city}</strong>.
               </p>
-
-              <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', padding: '1.25rem', textAlign: 'left', marginBottom: '2rem', fontSize: '0.9rem', border: '1px solid var(--border-subtle)' }}>
-                <div style={{ marginBottom: '0.5rem' }}>
-                  📍 <strong>Pickup Address:</strong> {submitted.customer.address}, {submitted.customer.city}
-                </div>
-                <div>
-                  📞 <strong>Field Agent Assignment:</strong> Our technician will contact <strong>{submitted.customer.phone}</strong> to confirm doorstep inspection timing.
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                <button 
-                  className="btn btn-cyan" 
-                  onClick={() => navigate('/profile')}
-                  style={{ width: '100%', padding: '0.95rem', justifyContent: 'center' }}
-                >
-                  Track My Order Status
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button onClick={() => navigate('/profile')} className="btn btn-gold" style={{ padding: '0.85rem 1.75rem' }}>
+                  Track Order in Profile <ArrowRight size={18} />
                 </button>
-                <button 
-                  className="btn btn-outline" 
-                  onClick={() => {
-                    setSubmitted(null);
-                    setViewState('form');
-                  }}
-                  style={{ width: '100%', padding: '0.85rem', justifyContent: 'center' }}
-                >
-                  Submit Another Desktop Request
+                <button onClick={() => navigate('/')} className="btn btn-outline" style={{ padding: '0.85rem 1.75rem' }}>
+                  Back to Home
                 </button>
               </div>
             </div>

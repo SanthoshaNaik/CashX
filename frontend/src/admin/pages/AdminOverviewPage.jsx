@@ -154,57 +154,65 @@ export const AdminOverviewPage = () => {
             </button>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            {orders.slice(0, 5).map(o => (
-              <div
-                key={o.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '0.85rem 1rem',
-                  background: 'var(--bg-secondary)',
-                  borderRadius: '12px',
-                  border: '1px solid var(--border-subtle)',
-                  flexWrap: 'wrap',
-                  gap: '0.75rem'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                  <div style={{ fontWeight: 800, color: 'var(--accent-gold)', fontSize: '0.9rem' }}>
-                    {o.id}
-                  </div>
-                  <div>
-                    <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)' }}>
-                      {o.customer?.name} ({o.customer?.city})
+          {orders.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--text-muted)' }}>
+              <Package size={32} style={{ marginBottom: '0.5rem', opacity: 0.6 }} />
+              <p style={{ fontSize: '0.9rem', margin: 0, fontWeight: 600, color: 'var(--text-main)' }}>No buyback orders placed yet.</p>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-dim)' }}>When customers submit devices for buyback, they will appear here in real time.</span>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {orders.slice(0, 5).map(o => (
+                <div
+                  key={o.id}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0.85rem 1rem',
+                    background: 'var(--bg-secondary)',
+                    borderRadius: '12px',
+                    border: '1px solid var(--border-subtle)',
+                    flexWrap: 'wrap',
+                    gap: '0.75rem'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <div style={{ fontWeight: 800, color: 'var(--accent-gold)', fontSize: '0.9rem' }}>
+                      {o.id}
                     </div>
-                    <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
-                      {o.device?.brand} {o.device?.model || o.device?.type} • {o.device?.processor}
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontWeight: 800, color: 'var(--accent-emerald)', fontSize: '0.95rem' }}>
-                      ₹{(o.estimatedPrice || o.device?.expectedPrice || 0).toLocaleString()}
-                    </div>
-                    <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
-                      Agent: {o.assignedAgentName || 'Unassigned'}
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '0.88rem', color: 'var(--text-main)' }}>
+                        {o.customer?.name} ({o.customer?.city})
+                      </div>
+                      <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                        {o.device?.brand} {o.device?.model || o.device?.type} • {o.device?.processor}
+                      </div>
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => setActiveTab('orders')}
-                    className="btn btn-outline"
-                    style={{ padding: '0.35rem 0.65rem', fontSize: '0.76rem' }}
-                  >
-                    Manage
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontWeight: 800, color: 'var(--accent-emerald)', fontSize: '0.95rem' }}>
+                        ₹{(o.estimatedPrice || o.device?.expectedPrice || 0).toLocaleString()}
+                      </div>
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-dim)' }}>
+                        Agent: {o.assignedAgentName || 'Unassigned'}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => setActiveTab('orders')}
+                      className="btn btn-outline"
+                      style={{ padding: '0.35rem 0.65rem', fontSize: '0.76rem' }}
+                    >
+                      Manage
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
       </div>

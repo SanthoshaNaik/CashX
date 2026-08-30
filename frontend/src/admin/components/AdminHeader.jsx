@@ -5,8 +5,10 @@ import { Laptop, Package, Users, BarChart3, LogOut, ExternalLink, ShieldCheck, S
 export const AdminHeader = () => {
   const { adminUser, logout, activeTab, setActiveTab, orders, agents, flashMessage, theme, toggleTheme } = useAdmin();
 
+  const isFieldAgent = adminUser?.role === 'FIELD_AGENT';
+
   const pendingOrdersCount = orders.filter(o => o.status === 'New Request' || o.status === 'Agent Assigned' || o.status === 'Pickup Scheduled').length;
-  const activeAgentsCount = agents.filter(a => a.status === 'Active' || a.status === 'On Duty').length;
+  const myAssignedOrdersCount = orders.filter(o => o.assignedAgentId === adminUser?.agentId && o.status !== 'Completed' && o.status !== 'Cancelled').length;
 
   return (
     <header style={{
@@ -42,7 +44,7 @@ export const AdminHeader = () => {
       {/* Main Admin Navbar */}
       <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.85rem 1.25rem', gap: '1rem', flexWrap: 'wrap' }}>
         
-        {/* Brand Logo & Admin Badge */}
+        {/* Brand Logo & Role Badge */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <div style={{
             width: '38px',
@@ -63,12 +65,14 @@ export const AdminHeader = () => {
               <span style={{ fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.02em', color: 'var(--text-main)' }}>
                 TheCash<span style={{ color: 'var(--accent-gold)' }}>X</span>
               </span>
-              <span className="badge badge-gold" style={{ fontSize: '0.68rem', padding: '0.15rem 0.5rem', letterSpacing: '0.06em' }}>
-                ADMIN HUB
+              <span className={`badge ${isFieldAgent ? 'badge-cyan' : 'badge-gold'}`} style={{ fontSize: '0.68rem', padding: '0.15rem 0.5rem', letterSpacing: '0.06em' }}>
+                {isFieldAgent ? 'FIELD AGENT' : 'ADMIN HUB'}
               </span>
             </div>
             <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-              Operations & Field Fleet Control
+              {isFieldAgent 
+                ? `${adminUser?.city || 'Bangalore'} Hub • On-Site Inspections` 
+                : 'Operations & Field Fleet Control'}
             </div>
           </div>
         </div>
@@ -83,116 +87,155 @@ export const AdminHeader = () => {
           borderRadius: '12px',
           border: theme === 'light' ? '1px solid #cbd5e1' : '1px solid var(--border-subtle)'
         }}>
-          {/* Orders & Pickups Tab */}
-          <button
-            onClick={() => setActiveTab('orders')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-              padding: '0.5rem 1rem',
-              borderRadius: '9px',
-              border: 'none',
-              fontSize: '0.86rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              background: activeTab === 'orders' 
-                ? (theme === 'light' ? '#0f172a' : 'var(--accent-gold)') 
-                : 'transparent',
-              color: activeTab === 'orders' 
-                ? (theme === 'light' ? '#ffffff' : '#000000') 
-                : (theme === 'light' ? '#1e293b' : 'var(--text-muted)'),
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <Package size={16} color={activeTab === 'orders' ? (theme === 'light' ? '#ffffff' : '#000000') : (theme === 'light' ? '#334155' : 'currentColor')} />
-            <span>Orders & Pickups</span>
-            {pendingOrdersCount > 0 && (
-              <span style={{
-                background: activeTab === 'orders'
-                  ? (theme === 'light' ? 'rgba(255,255,255,0.25)' : '#000000')
-                  : (theme === 'light' ? '#cbd5e1' : 'var(--accent-gold)'),
-                color: activeTab === 'orders'
-                  ? '#ffffff'
-                  : (theme === 'light' ? '#0f172a' : '#000000'),
-                fontSize: '0.7rem',
-                fontWeight: 800,
-                padding: '0.1rem 0.45rem',
-                borderRadius: '10px'
-              }}>
-                {pendingOrdersCount}
-              </span>
-            )}
-          </button>
+          {isFieldAgent ? (
+            /* Field Agent Tabs */
+            <button
+              onClick={() => setActiveTab('orders')}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                padding: '0.5rem 1rem',
+                borderRadius: '9px',
+                border: 'none',
+                fontSize: '0.86rem',
+                fontWeight: 700,
+                cursor: 'pointer',
+                background: theme === 'light' ? '#0f172a' : 'var(--accent-gold)',
+                color: theme === 'light' ? '#ffffff' : '#000000',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <Package size={16} />
+              <span>My Assigned Pickups</span>
+              {myAssignedOrdersCount > 0 && (
+                <span style={{
+                  background: theme === 'light' ? 'rgba(255,255,255,0.25)' : '#000000',
+                  color: '#ffffff',
+                  fontSize: '0.7rem',
+                  fontWeight: 800,
+                  padding: '0.1rem 0.45rem',
+                  borderRadius: '10px'
+                }}>
+                  {myAssignedOrdersCount}
+                </span>
+              )}
+            </button>
+          ) : (
+            /* Super Admin Tabs */
+            <>
+              {/* Orders & Pickups Tab */}
+              <button
+                onClick={() => setActiveTab('orders')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '9px',
+                  border: 'none',
+                  fontSize: '0.86rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  background: activeTab === 'orders' 
+                    ? (theme === 'light' ? '#0f172a' : 'var(--accent-gold)') 
+                    : 'transparent',
+                  color: activeTab === 'orders' 
+                    ? (theme === 'light' ? '#ffffff' : '#000000') 
+                    : (theme === 'light' ? '#1e293b' : 'var(--text-muted)'),
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <Package size={16} color={activeTab === 'orders' ? (theme === 'light' ? '#ffffff' : '#000000') : (theme === 'light' ? '#334155' : 'currentColor')} />
+                <span>Orders & Pickups</span>
+                {pendingOrdersCount > 0 && (
+                  <span style={{
+                    background: activeTab === 'orders'
+                      ? (theme === 'light' ? 'rgba(255,255,255,0.25)' : '#000000')
+                      : (theme === 'light' ? '#cbd5e1' : 'var(--accent-gold)'),
+                    color: activeTab === 'orders'
+                      ? '#ffffff'
+                      : (theme === 'light' ? '#0f172a' : '#000000'),
+                    fontSize: '0.7rem',
+                    fontWeight: 800,
+                    padding: '0.1rem 0.45rem',
+                    borderRadius: '10px'
+                  }}>
+                    {pendingOrdersCount}
+                  </span>
+                )}
+              </button>
 
-          {/* Field Agents Tab */}
-          <button
-            onClick={() => setActiveTab('agents')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-              padding: '0.5rem 1rem',
-              borderRadius: '9px',
-              border: 'none',
-              fontSize: '0.86rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              background: activeTab === 'agents' 
-                ? (theme === 'light' ? '#0f172a' : 'var(--accent-gold)') 
-                : 'transparent',
-              color: activeTab === 'agents' 
-                ? (theme === 'light' ? '#ffffff' : '#000000') 
-                : (theme === 'light' ? '#1e293b' : 'var(--text-muted)'),
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <Users size={16} color={activeTab === 'agents' ? (theme === 'light' ? '#ffffff' : '#000000') : (theme === 'light' ? '#334155' : 'currentColor')} />
-            <span>Field Agents</span>
-            <span style={{
-              background: activeTab === 'agents' 
-                ? (theme === 'light' ? 'rgba(255,255,255,0.25)' : '#000000') 
-                : (theme === 'light' ? '#cbd5e1' : 'rgba(255,255,255,0.1)'),
-              color: activeTab === 'agents' 
-                ? '#ffffff' 
-                : (theme === 'light' ? '#0f172a' : 'var(--text-dim)'),
-              fontSize: '0.7rem',
-              fontWeight: 800,
-              padding: '0.1rem 0.45rem',
-              borderRadius: '10px'
-            }}>
-              {agents.length}
-            </span>
-          </button>
+              {/* Field Agents Tab */}
+              <button
+                onClick={() => setActiveTab('agents')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '9px',
+                  border: 'none',
+                  fontSize: '0.86rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  background: activeTab === 'agents' 
+                    ? (theme === 'light' ? '#0f172a' : 'var(--accent-gold)') 
+                    : 'transparent',
+                  color: activeTab === 'agents' 
+                    ? (theme === 'light' ? '#ffffff' : '#000000') 
+                    : (theme === 'light' ? '#1e293b' : 'var(--text-muted)'),
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <Users size={16} color={activeTab === 'agents' ? (theme === 'light' ? '#ffffff' : '#000000') : (theme === 'light' ? '#334155' : 'currentColor')} />
+                <span>Field Agents</span>
+                <span style={{
+                  background: activeTab === 'agents' 
+                    ? (theme === 'light' ? 'rgba(255,255,255,0.25)' : '#000000') 
+                    : (theme === 'light' ? '#cbd5e1' : 'rgba(255,255,255,0.1)'),
+                  color: activeTab === 'agents' 
+                    ? '#ffffff' 
+                    : (theme === 'light' ? '#0f172a' : 'var(--text-dim)'),
+                  fontSize: '0.7rem',
+                  fontWeight: 800,
+                  padding: '0.1rem 0.45rem',
+                  borderRadius: '10px'
+                }}>
+                  {agents.length}
+                </span>
+              </button>
 
-          {/* Overview Tab */}
-          <button
-            onClick={() => setActiveTab('overview')}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-              padding: '0.5rem 1rem',
-              borderRadius: '9px',
-              border: 'none',
-              fontSize: '0.86rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              background: activeTab === 'overview' 
-                ? (theme === 'light' ? '#0f172a' : 'var(--accent-gold)') 
-                : 'transparent',
-              color: activeTab === 'overview' 
-                ? (theme === 'light' ? '#ffffff' : '#000000') 
-                : (theme === 'light' ? '#1e293b' : 'var(--text-muted)'),
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <BarChart3 size={16} color={activeTab === 'overview' ? (theme === 'light' ? '#ffffff' : '#000000') : (theme === 'light' ? '#334155' : 'currentColor')} />
-            <span>Overview</span>
-          </button>
+              {/* Overview Tab */}
+              <button
+                onClick={() => setActiveTab('overview')}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '9px',
+                  border: 'none',
+                  fontSize: '0.86rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  background: activeTab === 'overview' 
+                    ? (theme === 'light' ? '#0f172a' : 'var(--accent-gold)') 
+                    : 'transparent',
+                  color: activeTab === 'overview' 
+                    ? (theme === 'light' ? '#ffffff' : '#000000') 
+                    : (theme === 'light' ? '#1e293b' : 'var(--text-muted)'),
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <BarChart3 size={16} color={activeTab === 'overview' ? (theme === 'light' ? '#ffffff' : '#000000') : (theme === 'light' ? '#334155' : 'currentColor')} />
+                <span>Overview</span>
+              </button>
+            </>
+          )}
         </div>
 
-        {/* Right Side: Admin User Profile & Actions */}
+        {/* Right Side: User Profile & Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
           {/* Theme Switcher Button (Dark / White Mode) */}
           <button
@@ -235,7 +278,7 @@ export const AdminHeader = () => {
             <ExternalLink size={14} /> View Site
           </a>
 
-          {/* Admin User Chip */}
+          {/* User Profile Chip */}
           <div style={{
             display: 'flex',
             alignItems: 'center',
@@ -250,22 +293,22 @@ export const AdminHeader = () => {
               width: '28px',
               height: '28px',
               borderRadius: '50%',
-              background: theme === 'light' ? '#0f172a' : 'var(--accent-gold)',
-              color: theme === 'light' ? '#ffffff' : '#000000',
+              background: isFieldAgent ? 'var(--accent-cyan)' : (theme === 'light' ? '#0f172a' : 'var(--accent-gold)'),
+              color: isFieldAgent ? '#ffffff' : (theme === 'light' ? '#ffffff' : '#000000'),
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 800,
               fontSize: '0.82rem'
             }}>
-              A
+              {adminUser?.fullName?.charAt(0) || 'U'}
             </div>
             <div style={{ textAlign: 'left', lineHeight: 1.1 }}>
               <div style={{ fontSize: '0.82rem', fontWeight: 700, color: theme === 'light' ? '#0f172a' : 'var(--text-main)' }}>
-                {adminUser?.fullName || 'Admin'}
+                {adminUser?.fullName || 'User'}
               </div>
-              <div style={{ fontSize: '0.68rem', color: theme === 'light' ? '#047857' : '#10b981', fontWeight: 600 }}>
-                ● Active Super Admin
+              <div style={{ fontSize: '0.68rem', color: isFieldAgent ? '#0284c7' : (theme === 'light' ? '#047857' : '#10b981'), fontWeight: 600 }}>
+                {isFieldAgent ? `● Field Agent (${adminUser?.city || 'Hub'})` : '● Active Super Admin'}
               </div>
             </div>
           </div>
@@ -281,7 +324,7 @@ export const AdminHeader = () => {
               borderColor: 'rgba(239, 68, 68, 0.3)',
               gap: '0.35rem'
             }}
-            title="Logout from Admin"
+            title="Logout"
           >
             <LogOut size={14} /> Logout
           </button>

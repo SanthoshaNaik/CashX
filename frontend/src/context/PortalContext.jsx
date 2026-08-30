@@ -11,7 +11,7 @@ export const PortalProvider = ({ children }) => {
     if (saved) {
       const parsed = JSON.parse(saved);
       parsed.name = "TheCashX";
-      parsed.email = "support@thecashx.com";
+      parsed.email = "thecashx26@gmail.com";
       parsed.websiteUrl = "https://www.thecashx.com";
       parsed.phone = "+91 821 746 4709";
       parsed.whatsapp = "+91 821 746 4709";
@@ -44,9 +44,41 @@ export const PortalProvider = ({ children }) => {
 
   // Portal Requests Pipeline State
   const [requests, setRequests] = useState(() => {
+    const cleaned = localStorage.getItem('cashx_clean_state_v3');
+    if (!cleaned) {
+      localStorage.setItem('laptop_requests', JSON.stringify([]));
+      localStorage.setItem('cashx_admin_agents', JSON.stringify([]));
+      localStorage.setItem('cashx_clean_state_v3', 'true');
+      return [];
+    }
     const saved = localStorage.getItem('laptop_requests');
-    return saved ? JSON.parse(saved) : INITIAL_REQUESTS;
+    return saved ? JSON.parse(saved) : [];
   });
+
+  // Real-time synchronization: listen to storage and in-app custom events
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (e.key === 'laptop_requests' && e.newValue) {
+        setRequests(JSON.parse(e.newValue));
+      }
+    };
+
+    const handleCustomEvent = (e) => {
+      if (e.detail) {
+        setRequests(e.detail);
+      } else {
+        const saved = localStorage.getItem('laptop_requests');
+        if (saved) setRequests(JSON.parse(saved));
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('cashx_orders_updated', handleCustomEvent);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('cashx_orders_updated', handleCustomEvent);
+    };
+  }, []);
 
   // Sync to LocalStorage
   useEffect(() => {
@@ -260,15 +292,46 @@ export const PortalProvider = ({ children }) => {
         expectedPrice: parseInt(formData.expectedPrice) || estimatedPrice
       },
       status: 'New Request',
+      assignedAgentId: null,
+      assignedAgentName: 'Unassigned',
+      assignedAgentPhone: null,
+      scheduledDate: null,
+      timeSlot: null,
+      dispatchNotes: '',
       date: new Date().toISOString().split('T')[0],
       estimatedPrice,
       finalOfferPrice: 0,
       remarks: ''
     };
 
-    setRequests(prev => [newReq, ...prev]);
+    setRequests(prev => {
+      const updated = [newReq, ...prev];
+      localStorage.setItem('laptop_requests', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('cashx_orders_updated', { detail: updated }));
+      return updated;
+    });
+
     apiService.submitRequest(newReq);
     return newReq;
+  };
+
+  // Cancel a buyback request by the user
+  const cancelBuybackRequest = (requestId, reason = 'Cancelled by Customer') => {
+    setRequests(prev => {
+      const updated = prev.map(req => {
+        if (req.id === requestId) {
+          return {
+            ...req,
+            status: 'Cancelled',
+            remarks: reason ? `Customer Cancellation Reason: ${reason}` : req.remarks
+          };
+        }
+        return req;
+      });
+      localStorage.setItem('laptop_requests', JSON.stringify(updated));
+      window.dispatchEvent(new CustomEvent('cashx_orders_updated', { detail: updated }));
+      return updated;
+    });
   };
 
   return (
@@ -296,6 +359,7 @@ export const PortalProvider = ({ children }) => {
       setAuthModalOpen,
       calculateQuote,
       createBuybackRequest,
+      cancelBuybackRequest,
       COMPANY_INFO: companyInfo,
       updateCompanyInfo
     }}>

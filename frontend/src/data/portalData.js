@@ -8,7 +8,7 @@ export const DEFAULT_COMPANY_INFO = {
   yearsExperience: "24+",
   phone: "+91 821 746 4709",
   whatsapp: "+91 821 746 4709",
-  email: "support@thecashx.com",
+  email: "thecashx26@gmail.com",
   websiteUrl: "https://www.thecashx.com",
   address: "NGR complex Arekere Bannerghatta Road Bengaluru pin code 560076",
   workingHours: "Mon - Sat: 9:30 AM - 8:00 PM | Sun: 10:00 AM - 4:00 PM",
@@ -249,110 +249,4 @@ export const BLOG_POSTS = [
   }
 ];
 
-export const INITIAL_REQUESTS = [
-  {
-    id: "LB-9821",
-    customer: {
-      name: "Harish Murthy",
-      phone: "+91 821 746 4709",
-      altPhone: "+91 821 746 4709",
-      email: "harish.m@gmail.com",
-      address: "Flat 402, Green View Apartments, Indiranagar",
-      city: "Bangalore",
-      pincode: "560038"
-    },
-    device: {
-      type: "Laptop",
-      brand: "Apple",
-      model: "MacBook Pro 14 M1",
-      processor: "Apple M1 Pro",
-      ram: "16GB",
-      storage: "512GB SSD",
-      age: "2 Years",
-      condition: "Excellent",
-      accessories: ["Charger", "Original Box", "Invoice"],
-      expectedPrice: 65000
-    },
-    status: "New Request",
-    assignedAgentId: "agent-101",
-    assignedAgentName: "Suresh Gowda",
-    date: "2026-07-24",
-    estimatedPrice: 68000,
-    finalOfferPrice: 66500,
-    remarks: "Client kept device in pristine condition with skin wrap.",
-    inspection: {
-      physical: { screenOk: "Yes", displayIssue: "No", scratches: "No", dents: "No", hingesOk: "Yes", keyboardOk: "Yes", touchpadOk: "Yes", webcamOk: "Yes", speakersOk: "Yes", micOk: "Yes" },
-      hardware: { powerOn: "Working", batteryHealth: "89%", chargingPort: "Working", usbPorts: "Working", hdmiPort: "Working", wifi: "Working", bluetooth: "Working", storageDetection: "Working", ramDetection: "Working", fingerprintSensor: "Working", graphicsCheck: "Working" },
-      software: { windowsActivated: "Working", driversInstalled: "Working", biosAccessible: "Working", osWorking: "Working" },
-      accessories: { charger: true, box: true, bag: false, invoice: true, warranty: false },
-      images: [
-        { label: "Front View", url: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=600&q=80" },
-        { label: "Keyboard View", url: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?auto=format&fit=crop&w=600&q=80" }
-      ]
-    }
-  },
-  {
-    id: "LB-9822",
-    customer: {
-      name: "Sneha Patel",
-      phone: "+91 821 746 4709",
-      altPhone: "",
-      email: "sneha.p@outlook.com",
-      address: "Building 12, Tech Park Enclave, Whitefield",
-      city: "Bangalore",
-      pincode: "560066"
-    },
-    device: {
-      type: "Laptop",
-      brand: "Dell",
-      model: "Inspiron 15 5000",
-      processor: "Intel Core i5 (11th Gen)",
-      ram: "8GB",
-      storage: "1TB HDD + 256GB SSD",
-      age: "3 Years",
-      condition: "Good",
-      accessories: ["Charger"],
-      expectedPrice: 22000
-    },
-    status: "Assigned",
-    assignedAgentId: "agent-102",
-    assignedAgentName: "Anand Verma",
-    date: "2026-07-24",
-    estimatedPrice: 23500,
-    finalOfferPrice: 0,
-    remarks: "Scheduled pickup for evening 5:00 PM.",
-    inspection: null
-  },
-  {
-    id: "LB-9823",
-    customer: {
-      name: "Deepak Chawla",
-      phone: "+91 821 746 4709",
-      altPhone: "",
-      email: "deepak@chawla.in",
-      address: "15th Cross, Malleshwaram",
-      city: "Bangalore",
-      pincode: "560003"
-    },
-    device: {
-      type: "Desktop",
-      brand: "Custom Rig",
-      model: "RTX 3070 Gaming PC",
-      processor: "AMD Ryzen 7 5800X",
-      ram: "32GB",
-      storage: "1TB NVMe SSD",
-      age: "1.5 Years",
-      condition: "Excellent",
-      accessories: ["Charger", "Original Box"],
-      expectedPrice: 55000
-    },
-    status: "Completed",
-    assignedAgentId: "agent-101",
-    assignedAgentName: "Suresh Gowda",
-    date: "2026-07-23",
-    estimatedPrice: 58000,
-    finalOfferPrice: 57000,
-    remarks: "Inspected at doorstep, verified GPU stress test. Instant payment made via UPI.",
-    inspection: null
-  }
-];
+export const INITIAL_REQUESTS = [];
