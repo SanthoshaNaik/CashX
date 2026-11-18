@@ -1,6 +1,7 @@
-// TheCashX API Service connector for Spring Boot REST Backend
-
-const API_BASE = (import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, '');
+const API_BASE = (
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.PROD ? 'https://cashx-backend.onrender.com/api' : '/api')
+).replace(/\/+$/, '');
 
 const getAuthHeaders = (isAdmin = false) => {
   const token = isAdmin
