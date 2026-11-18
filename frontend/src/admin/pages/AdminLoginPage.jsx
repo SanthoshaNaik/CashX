@@ -21,18 +21,21 @@ export const AdminLoginPage = () => {
   const [forgotStep, setForgotStep] = useState(1); // 1: Enter email, 2: Set new password, 3: Success
   const [forgotError, setForgotError] = useState('');
 
-  const handleLoginSubmit = (e) => {
+  const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setErrorMsg('');
     setIsLoading(true);
 
-    setTimeout(() => {
-      const res = login(email, password);
-      setIsLoading(false);
+    try {
+      const res = await login(email, password);
       if (!res.success) {
         setErrorMsg(res.error || 'Invalid credentials.');
       }
-    }, 400);
+    } catch (err) {
+      setErrorMsg(err.message || 'Login failed.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleFillDemo = () => {

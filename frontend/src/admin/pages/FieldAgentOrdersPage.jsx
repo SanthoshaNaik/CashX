@@ -1,14 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAdmin } from '../AdminContext';
 import { 
   Package, Search, Filter, MapPin, Phone, MessageSquare, Laptop, Monitor, 
   Tv, Apple, CheckCircle2, Clock, AlertCircle, Calculator, ShieldCheck, 
-  MapPinned, Calendar, ArrowRight, UserCheck, Sparkles, Check, User, X, Star, Award
+  MapPinned, Calendar, ArrowRight, UserCheck, Sparkles, Check, User, X, Star, Award,
+  RefreshCw
 } from 'lucide-react';
 import { AgentInspectionModal } from '../components/AgentInspectionModal';
 
 export const FieldAgentOrdersPage = () => {
-  const { adminUser, orders, updateOrderStatus, theme } = useAdmin();
+  const { adminUser, orders, updateOrderStatus, theme, loadBackendData, isLoadingBackend } = useAdmin();
+
+  // Load assigned orders from backend on page mount
+  useEffect(() => {
+    loadBackendData();
+  }, []);
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
@@ -116,13 +122,25 @@ export const FieldAgentOrdersPage = () => {
               Assigned Hub: <strong style={{ color: 'var(--text-main)' }}>{adminUser?.hub || 'Central Electronics Hub'}</strong> ({adminUser?.city || 'Bangalore'}) • Direct Mobile: {adminUser?.phone || '+91 98450 11223'}
             </p>
 
-            <button
-              onClick={() => setProfileModalOpen(true)}
-              className="btn btn-outline"
-              style={{ padding: '0.45rem 0.95rem', fontSize: '0.82rem', gap: '0.4rem', borderRadius: '10px' }}
-            >
-              <User size={14} /> View My Profile & Live Stats
-            </button>
+            <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => setProfileModalOpen(true)}
+                className="btn btn-outline"
+                style={{ padding: '0.45rem 0.95rem', fontSize: '0.82rem', gap: '0.4rem', borderRadius: '10px' }}
+              >
+                <User size={14} /> View My Profile & Live Stats
+              </button>
+
+              <button
+                onClick={loadBackendData}
+                disabled={isLoadingBackend}
+                className="btn btn-outline"
+                style={{ padding: '0.45rem 0.95rem', fontSize: '0.82rem', gap: '0.4rem', borderRadius: '10px' }}
+              >
+                <RefreshCw size={14} style={{ animation: isLoadingBackend ? 'spin 1s linear infinite' : 'none' }} />
+                {isLoadingBackend ? 'Syncing...' : 'Sync Tasks'}
+              </button>
+            </div>
           </div>
 
           {/* Quick Metric Chips */}

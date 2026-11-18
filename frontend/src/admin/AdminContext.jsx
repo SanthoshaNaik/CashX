@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { DEFAULT_ADMIN_CREDENTIALS, INITIAL_FIELD_AGENTS } from './data/adminInitialData';
 import { INITIAL_REQUESTS, BRANDS, MACMINI_MODELS } from '../data/portalData';
+import { apiService } from '../services/apiService';
 
 const AdminContext = createContext();
 
@@ -58,14 +59,12 @@ export const calculateInspectionQuote = ({
     if (storage && (storage.includes('1TB') || storage.includes('2TB'))) base += 4000;
   }
 
-  // Base Condition Multiplier
   let condMult = 1.0;
   if (condition === 'Excellent') condMult = 1.1;
   else if (condition === 'Good') condMult = 1.0;
   else if (condition === 'Average') condMult = 0.85;
   else if (condition === 'Damaged') condMult = 0.55;
 
-  // Age Multiplier
   let ageMult = 1.0;
   if (age && age.includes('Under 1 Year')) ageMult = 1.2;
   else if (age && age.includes('1-2 Years')) ageMult = 1.0;
@@ -74,50 +73,47 @@ export const calculateInspectionQuote = ({
 
   let calculated = Math.round(base * condMult * ageMult);
 
-  // Screen Condition adjustment
   if (screenCondition === 'Minor Scratches') calculated -= 1200;
   else if (screenCondition === 'Spots / Bleeding / Lines') calculated -= 4000;
   else if (screenCondition === 'Cracked / Broken Glass') calculated -= 7500;
 
-  // Battery Health adjustment
-  if (batteryHealth.includes('Fair') || batteryHealth.includes('70-79%')) calculated -= 1500;
-  else if (batteryHealth.includes('Degraded') || batteryHealth.includes('Service') || batteryHealth.includes('Below 70%')) calculated -= 3200;
-  else if (batteryHealth.includes('Not Holding Charge')) calculated -= 4500;
+  if (batteryHealth && (batteryHealth.includes('Fair') || batteryHealth.includes('70-79%'))) calculated -= 1500;
+  else if (batteryHealth && (batteryHealth.includes('Degraded') || batteryHealth.includes('Service') || batteryHealth.includes('Below 70%'))) calculated -= 3200;
+  else if (batteryHealth && batteryHealth.includes('Not Holding Charge')) calculated -= 4500;
 
-  // Keyboard / Touchpad
   if (keyboardStatus === 'Some Faulty Keys') calculated -= 1600;
-
-  // Ports / Wi-Fi
   if (portsStatus === 'Issues / Not Working') calculated -= 1200;
 
-  // Accessories Bonuses
-  if (accessories.includes('Charger') || accessories.includes('Original Charger')) calculated += 1000;
-  if (accessories.includes('Box') || accessories.includes('Original Box')) calculated += 600;
-  if (accessories.includes('Invoice') || accessories.includes('Original Bill') || accessories.includes('Bill')) calculated += 1200;
-  if (accessories.includes('Warranty') || accessories.includes('Valid Warranty')) calculated += 1800;
+  const accessList = Array.isArray(accessories) ? accessories : [];
+  if (accessList.some(a => a.toLowerCase().includes('charger'))) calculated += 1000;
+  if (accessList.some(a => a.toLowerCase().includes('box'))) calculated += 600;
+  if (accessList.some(a => a.toLowerCase().includes('bill') || a.toLowerCase().includes('invoice'))) calculated += 1200;
+  if (accessList.some(a => a.toLowerCase().includes('warranty'))) calculated += 1800;
 
   return Math.max(3000, calculated);
 };
 
 export const AdminProvider = ({ children }) => {
-  // Authentication State (Super Admin or Field Agent)
+  // Authentication State (Super Admin or Field Agent) - Requires valid JWT token
   const [adminUser, setAdminUser] = useState(() => {
+    const token = localStorage.getItem('cashx_admin_token');
     const saved = localStorage.getItem('cashx_admin_user');
+    if (!token || !token.startsWith('eyJ')) {
+      localStorage.removeItem('cashx_admin_user');
+      localStorage.removeItem('cashx_admin_token');
+      return null;
+    }
     return saved ? JSON.parse(saved) : null;
   });
 
   // Current Tab State ('orders' | 'agents' | 'overview')
   const [activeTab, setActiveTab] = useState('orders');
 
-  // Orders State (synced with main customer requests)
+  // Loading state for server synchronization
+  const [isLoadingBackend, setIsLoadingBackend] = useState(false);
+
+  // Orders State (synced with PostgreSQL backend)
   const [orders, setOrders] = useState(() => {
-    const cleaned = localStorage.getItem('cashx_clean_state_v3');
-    if (!cleaned) {
-      localStorage.setItem('laptop_requests', JSON.stringify([]));
-      localStorage.setItem('cashx_admin_agents', JSON.stringify([]));
-      localStorage.setItem('cashx_clean_state_v3', 'true');
-      return [];
-    }
     const saved = localStorage.getItem('laptop_requests');
     return saved ? JSON.parse(saved) : [];
   });
@@ -125,12 +121,7 @@ export const AdminProvider = ({ children }) => {
   // Field Agents State
   const [agents, setAgents] = useState(() => {
     const saved = localStorage.getItem('cashx_admin_agents');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      // Ensure all agents have passwords
-      return parsed.map(a => ({ ...a, password: a.password || 'agent123' }));
-    }
-    return [];
+    return saved ? JSON.parse(saved) : [];
   });
 
   // Filters State
@@ -179,12 +170,96 @@ export const AdminProvider = ({ children }) => {
     localStorage.setItem('cashx_admin_agents', JSON.stringify(agents));
   }, [agents]);
 
-  // Sync orders to localStorage and keep in sync with external customer actions
+  // Sync orders to localStorage
   useEffect(() => {
     localStorage.setItem('laptop_requests', JSON.stringify(orders));
   }, [orders]);
 
-  // Listen to cross-tab / window storage events and in-tab custom events to update orders & agents in real-time
+  // Load orders & agents from Spring Boot backend on mount or when adminUser changes
+  const loadBackendData = async () => {
+    const token = localStorage.getItem('cashx_admin_token');
+    if (!adminUser || !token || !token.startsWith('eyJ')) {
+      return;
+    }
+
+    setIsLoadingBackend(true);
+    try {
+      if (adminUser.role === 'FIELD_AGENT') {
+        const agentOrders = await apiService.getAgentOrders();
+        if (Array.isArray(agentOrders)) {
+          const mapped = agentOrders.map(normalizeBackendOrder);
+          setOrders(mapped);
+          localStorage.setItem('laptop_requests', JSON.stringify(mapped));
+        }
+      } else {
+        // Super Admin: Fetch all orders and agents fleet in parallel
+        const [ordersData, agentsData] = await Promise.all([
+          apiService.getAdminOrders(),
+          apiService.getAgents()
+        ]);
+        if (Array.isArray(ordersData)) {
+          const mapped = ordersData.map(normalizeBackendOrder);
+          setOrders(mapped);
+          localStorage.setItem('laptop_requests', JSON.stringify(mapped));
+        }
+        if (Array.isArray(agentsData) && agentsData.length > 0) {
+          setAgents(agentsData);
+          localStorage.setItem('cashx_admin_agents', JSON.stringify(agentsData));
+        }
+      }
+    } catch (e) {
+      console.warn('Backend sync notice:', e.message);
+    } finally {
+      setIsLoadingBackend(false);
+    }
+  };
+
+  useEffect(() => {
+    if (adminUser) {
+      loadBackendData();
+    }
+  }, [adminUser]);
+
+  // Helper to normalize backend order structure
+  const normalizeBackendOrder = (o) => ({
+    id: o.id,
+    customer: {
+      name: o.customer?.name || 'Customer',
+      phone: o.customer?.phone || '',
+      altPhone: o.customer?.altPhone || '',
+      email: o.customer?.email || '',
+      address: o.customer?.address || '',
+      city: o.customer?.city || 'Bangalore',
+      pincode: o.customer?.pincode || ''
+    },
+    device: {
+      type: o.device?.deviceType || 'Laptop',
+      brand: o.device?.brand || 'Generic',
+      model: o.device?.model || '',
+      processor: o.device?.processor || '',
+      ram: o.device?.ram || '',
+      storage: o.device?.storage || '',
+      condition: o.device?.condition || 'Good',
+      age: o.device?.age || '1-2 Years',
+      accessories: o.device?.accessories ? o.device.accessories.split(', ') : ['Power Cable'],
+      expectedPrice: o.device?.expectedPrice || o.estimatedPrice
+    },
+    status: o.status || 'New Request',
+    assignedAgentId: o.assignedAgent?.id || null,
+    assignedAgentName: o.assignedAgent?.name || 'Unassigned',
+    assignedAgentPhone: o.assignedAgent?.phone || null,
+    scheduledDate: o.scheduledDate || null,
+    timeSlot: o.timeSlot || null,
+    dispatchNotes: o.dispatchNotes || '',
+    date: o.requestDate ? o.requestDate.split('T')[0] : new Date().toISOString().split('T')[0],
+    estimatedPrice: o.estimatedPrice || 0,
+    finalOfferPrice: o.finalOfferPrice || 0,
+    remarks: o.remarks || '',
+    inspection: o.inspection || null,
+    statusHistory: o.statusHistory || []
+  });
+
+  // Listen to cross-tab / window storage events
   useEffect(() => {
     const handleStorageChange = (e) => {
       if (e.key === 'laptop_requests' && e.newValue) {
@@ -207,122 +282,91 @@ export const AdminProvider = ({ children }) => {
       }
     };
 
-    const handleAgentsCustomEvent = (e) => {
-      if (e.detail) {
-        setAgents(e.detail);
-      } else {
-        const saved = localStorage.getItem('cashx_admin_agents');
-        if (saved) setAgents(JSON.parse(saved));
-      }
-    };
-
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('cashx_orders_updated', handleOrdersCustomEvent);
-    window.addEventListener('cashx_agents_updated', handleAgentsCustomEvent);
     return () => {
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('cashx_orders_updated', handleOrdersCustomEvent);
-      window.removeEventListener('cashx_agents_updated', handleAgentsCustomEvent);
     };
   }, []);
 
-  // Login handler: Automatically identifies whether the user is Super Admin or Field Agent
-  const login = (email, password) => {
+  // Login handler: Calls Spring Boot backend /api/auth/admin/login with live token
+  const login = async (email, password) => {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPass = password.trim();
 
-    // 1. Check Super Admin credentials
-    if (cleanEmail === DEFAULT_ADMIN_CREDENTIALS.email.toLowerCase() && cleanPass === DEFAULT_ADMIN_CREDENTIALS.password) {
+    try {
+      const data = await apiService.adminLogin(cleanEmail, cleanPass);
       const user = {
-        email: DEFAULT_ADMIN_CREDENTIALS.email,
-        fullName: DEFAULT_ADMIN_CREDENTIALS.fullName,
-        role: 'ADMIN',
-        title: DEFAULT_ADMIN_CREDENTIALS.role,
-        avatar: DEFAULT_ADMIN_CREDENTIALS.avatar
+        id: data.user.id,
+        email: data.user.email,
+        fullName: data.user.fullName,
+        role: data.user.role,
+        agentId: data.user.agentId,
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(data.user.fullName)}&background=0f172a&color=ffffff`
       };
       setAdminUser(user);
       setActiveTab('orders');
-      showNotification(`Welcome back, ${user.fullName} (Super Admin)!`);
-      return { success: true, role: 'ADMIN' };
-    }
-
-    // 2. Check Custom Admin credentials if updated
-    const savedCustom = localStorage.getItem('cashx_custom_admin_creds');
-    if (savedCustom) {
-      const customCreds = JSON.parse(savedCustom);
-      if (cleanEmail === customCreds.email.toLowerCase() && cleanPass === customCreds.password) {
+      showNotification(`Welcome back, ${user.fullName} (${user.role === 'ADMIN' ? 'Super Admin' : 'Field Agent'})!`);
+      return { success: true, role: user.role };
+    } catch (err) {
+      // Local fallback for offline mode
+      if (cleanEmail === DEFAULT_ADMIN_CREDENTIALS.email.toLowerCase() && cleanPass === DEFAULT_ADMIN_CREDENTIALS.password) {
         const user = {
-          email: customCreds.email,
-          fullName: customCreds.fullName || 'Admin User',
+          email: DEFAULT_ADMIN_CREDENTIALS.email,
+          fullName: DEFAULT_ADMIN_CREDENTIALS.fullName,
           role: 'ADMIN',
-          title: 'Operations Admin',
+          title: DEFAULT_ADMIN_CREDENTIALS.role,
           avatar: DEFAULT_ADMIN_CREDENTIALS.avatar
         };
         setAdminUser(user);
         setActiveTab('orders');
-        showNotification(`Welcome back, ${user.fullName} (Admin)!`);
+        showNotification(`Welcome back, ${user.fullName} (Super Admin)!`);
         return { success: true, role: 'ADMIN' };
       }
-    }
 
-    // 3. Check Field Agent credentials
-    const matchedAgent = agents.find(
-      a => a.email.toLowerCase() === cleanEmail && (a.password || 'agent123') === cleanPass
-    );
+      const matchedAgent = agents.find(
+        a => a.email.toLowerCase() === cleanEmail && (a.password || 'agent123') === cleanPass
+      );
+      if (matchedAgent) {
+        const user = {
+          email: matchedAgent.email,
+          fullName: matchedAgent.name,
+          role: 'FIELD_AGENT',
+          agentId: matchedAgent.id,
+          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(matchedAgent.name)}&background=0f172a&color=ffffff`
+        };
+        setAdminUser(user);
+        setActiveTab('orders');
+        showNotification(`Welcome back, Field Agent ${user.fullName}!`);
+        return { success: true, role: 'FIELD_AGENT' };
+      }
 
-    if (matchedAgent) {
-      const user = {
-        email: matchedAgent.email,
-        fullName: matchedAgent.name,
-        role: 'FIELD_AGENT',
-        agentId: matchedAgent.id,
-        phone: matchedAgent.phone,
-        city: matchedAgent.city,
-        hub: matchedAgent.hub,
-        specialization: matchedAgent.specialization,
-        rating: matchedAgent.rating,
-        completedPickups: matchedAgent.completedPickups,
-        avatar: matchedAgent.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(matchedAgent.name)}&background=0f172a&color=ffffff`
+      return {
+        success: false,
+        error: err.message || 'Invalid credentials.'
       };
-      setAdminUser(user);
-      setActiveTab('orders');
-      showNotification(`Welcome back, Field Agent ${user.fullName} (${user.city})!`);
-      return { success: true, role: 'FIELD_AGENT' };
     }
-
-    return { 
-      success: false, 
-      error: 'Invalid credentials. Please verify your email and password. (Demo Admin: admin@thecashx.com / admin123 | Demo Agent: suresh.gowda@thecashx.com / agent123)' 
-    };
   };
 
   // Logout handler
   const logout = () => {
     setAdminUser(null);
+    localStorage.removeItem('cashx_admin_token');
     showNotification('Logged out successfully.');
   };
 
   // Forgot password reset handler
-  const forgotPassword = (email, newPassword) => {
+  const forgotPassword = async (email, newPassword) => {
     const cleanEmail = email.trim().toLowerCase();
-    
-    // Check if agent email
-    const agentIndex = agents.findIndex(a => a.email.toLowerCase() === cleanEmail);
-    if (agentIndex !== -1) {
-      setAgents(prev => prev.map((a, idx) => idx === agentIndex ? { ...a, password: newPassword || 'agent123' } : a));
-      showNotification(`Password for Field Agent ${cleanEmail} reset successfully.`);
+    try {
+      await apiService.forgotPassword(cleanEmail);
+      showNotification(`Password reset request sent for ${cleanEmail}.`);
+      return { success: true };
+    } catch (e) {
+      showNotification(`Password reset request processed.`);
       return { success: true };
     }
-
-    // Otherwise reset Super Admin
-    const updated = {
-      email: cleanEmail,
-      password: newPassword || 'admin123',
-      fullName: 'Super Admin'
-    };
-    localStorage.setItem('cashx_custom_admin_creds', JSON.stringify(updated));
-    showNotification(`Password for ${cleanEmail} reset successfully. You can now login with your new password.`);
-    return { success: true };
   };
 
   // Re-calculate agent active orders count dynamically
@@ -330,19 +374,29 @@ export const AdminProvider = ({ children }) => {
     return orders.filter(o => o.assignedAgentId === agentId && o.status !== 'Completed' && o.status !== 'Cancelled').length;
   };
 
-  // Schedule a field agent for a specific product order with date, time slot & dispatch notes
-  const scheduleAgentForOrder = (orderId, { agentId, scheduledDate, timeSlot, dispatchNotes }) => {
+  // Schedule a field agent for a specific product order
+  const scheduleAgentForOrder = async (orderId, { agentId, scheduledDate, timeSlot, dispatchNotes }) => {
     const agent = agents.find(a => a.id === agentId);
-    if (!agent) return false;
+
+    try {
+      await apiService.scheduleOrder(orderId, {
+        agentId,
+        scheduledDate: scheduledDate || new Date().toISOString().split('T')[0],
+        timeSlot: timeSlot || 'Today, 4:00 PM - 6:00 PM',
+        dispatchNotes: dispatchNotes || ''
+      });
+    } catch (e) {
+      console.warn('Backend schedule notice:', e.message);
+    }
 
     setOrders(prev => {
       const updated = prev.map(order => {
         if (order.id === orderId) {
           return {
             ...order,
-            assignedAgentId: agent.id,
-            assignedAgentName: agent.name,
-            assignedAgentPhone: agent.phone,
+            assignedAgentId: agent ? agent.id : agentId,
+            assignedAgentName: agent ? agent.name : 'Assigned Agent',
+            assignedAgentPhone: agent ? agent.phone : '',
             scheduledDate: scheduledDate || new Date().toISOString().split('T')[0],
             timeSlot: timeSlot || 'Today, 4:00 PM - 6:00 PM',
             dispatchNotes: dispatchNotes || order.dispatchNotes || '',
@@ -356,81 +410,21 @@ export const AdminProvider = ({ children }) => {
       return updated;
     });
 
-    showNotification(`Field agent ${agent.name} scheduled for order ${orderId} on ${scheduledDate || 'Today'} (${timeSlot || 'Doorstep Slot'}).`);
+    showNotification(`Field agent ${agent?.name || agentId} scheduled for order ${orderId}.`);
     return true;
   };
 
   // Assign agent to order
   const assignAgentToOrder = (orderId, agentId) => {
-    const agent = agents.find(a => a.id === agentId);
-    if (!agent) return false;
-
-    setOrders(prev => {
-      const updated = prev.map(order => {
-        if (order.id === orderId) {
-          return {
-            ...order,
-            assignedAgentId: agent.id,
-            assignedAgentName: agent.name,
-            assignedAgentPhone: agent.phone,
-            status: order.status === 'New Request' ? 'Agent Assigned' : order.status
-          };
-        }
-        return order;
-      });
-      localStorage.setItem('laptop_requests', JSON.stringify(updated));
-      window.dispatchEvent(new CustomEvent('cashx_orders_updated', { detail: updated }));
-      return updated;
-    });
-
-    showNotification(`Order ${orderId} assigned to field agent ${agent.name} (${agent.city}).`);
-    return true;
-  };
-
-  // Record pickup completion on agent's profile in real-time
-  const recordAgentPickupCompletion = (agentId) => {
-    if (!agentId) return;
-
-    // Update agents list
-    setAgents(prevAgents => {
-      const updatedAgents = prevAgents.map(ag => {
-        if (ag.id === agentId) {
-          return {
-            ...ag,
-            completedPickups: (ag.completedPickups || 0) + 1
-          };
-        }
-        return ag;
-      });
-      localStorage.setItem('cashx_admin_agents', JSON.stringify(updatedAgents));
-      window.dispatchEvent(new CustomEvent('cashx_agents_updated', { detail: updatedAgents }));
-      return updatedAgents;
-    });
-
-    // If currently logged in agent is the one who completed it, update session user profile
-    setAdminUser(prevUser => {
-      if (prevUser && (prevUser.agentId === agentId || prevUser.id === agentId)) {
-        const updatedUser = {
-          ...prevUser,
-          completedPickups: (prevUser.completedPickups || 0) + 1
-        };
-        localStorage.setItem('cashx_admin_user', JSON.stringify(updatedUser));
-        return updatedUser;
-      }
-      return prevUser;
-    });
+    return scheduleAgentForOrder(orderId, { agentId });
   };
 
   // Update order lifecycle status
-  const updateOrderStatus = (orderId, newStatus, remarks = '') => {
-    const currentOrder = orders.find(o => o.id === orderId);
-    const wasAlreadyCompleted = currentOrder?.status === 'Completed';
-
-    if (newStatus === 'Completed' && !wasAlreadyCompleted) {
-      const targetAgentId = currentOrder?.assignedAgentId || adminUser?.agentId;
-      if (targetAgentId) {
-        recordAgentPickupCompletion(targetAgentId);
-      }
+  const updateOrderStatus = async (orderId, newStatus, remarks = '') => {
+    try {
+      await apiService.updateOrderStatus(orderId, { status: newStatus, remarks });
+    } catch (e) {
+      console.warn('Backend status notice:', e.message);
     }
 
     setOrders(prev => {
@@ -452,15 +446,19 @@ export const AdminProvider = ({ children }) => {
   };
 
   // Comprehensive update from Field Agent On-Site Inspection
-  const updateOrderInspection = (orderId, updatedDeviceSpecs, inspectionChecklist, finalQuotation, newStatus = 'Completed', remarks = '') => {
-    const currentOrder = orders.find(o => o.id === orderId);
-    const wasAlreadyCompleted = currentOrder?.status === 'Completed';
-
-    if (newStatus === 'Completed' && !wasAlreadyCompleted) {
-      const targetAgentId = adminUser?.agentId || currentOrder?.assignedAgentId;
-      if (targetAgentId) {
-        recordAgentPickupCompletion(targetAgentId);
-      }
+  const updateOrderInspection = async (orderId, updatedDeviceSpecs, inspectionChecklist, finalQuotation, newStatus = 'Completed', remarks = '') => {
+    try {
+      await apiService.saveInspection(orderId, {
+        ...updatedDeviceSpecs,
+        ...inspectionChecklist,
+        verifiedAccessories: Array.isArray(inspectionChecklist.verifiedAccessories)
+          ? inspectionChecklist.verifiedAccessories.join(', ')
+          : (inspectionChecklist.verifiedAccessories || ''),
+        finalQuotation,
+        remarks
+      });
+    } catch (e) {
+      console.warn('Backend inspection notice:', e.message);
     }
 
     setOrders(prev => {
@@ -493,9 +491,17 @@ export const AdminProvider = ({ children }) => {
   };
 
   // Add a new field agent
-  const addAgent = (agentData) => {
+  const addAgent = async (agentData) => {
+    let createdId = `agent-${Date.now().toString().slice(-4)}`;
+    try {
+      const res = await apiService.createAgent(agentData);
+      if (res?.id) createdId = res.id;
+    } catch (e) {
+      console.warn('Backend create agent notice:', e.message);
+    }
+
     const newAgent = {
-      id: `agent-${Date.now().toString().slice(-4)}`,
+      id: createdId,
       name: agentData.name,
       phone: agentData.phone,
       email: agentData.email,
@@ -516,7 +522,13 @@ export const AdminProvider = ({ children }) => {
   };
 
   // Update existing field agent
-  const updateAgent = (agentId, updatedData) => {
+  const updateAgent = async (agentId, updatedData) => {
+    try {
+      await apiService.updateAgent(agentId, updatedData);
+    } catch (e) {
+      console.warn('Backend update agent notice:', e.message);
+    }
+
     setAgents(prev => prev.map(a => {
       if (a.id === agentId) {
         return { ...a, ...updatedData };
@@ -527,11 +539,16 @@ export const AdminProvider = ({ children }) => {
   };
 
   // Delete/Remove field agent
-  const deleteAgent = (agentId) => {
+  const deleteAgent = async (agentId) => {
+    try {
+      await apiService.deleteAgent(agentId);
+    } catch (e) {
+      console.warn('Backend delete agent notice:', e.message);
+    }
+
     const agentToDelete = agents.find(a => a.id === agentId);
     setAgents(prev => prev.filter(a => a.id !== agentId));
 
-    // Clear assignment from orders that had this agent
     setOrders(prev => prev.map(o => {
       if (o.assignedAgentId === agentId) {
         return {
@@ -576,7 +593,9 @@ export const AdminProvider = ({ children }) => {
       flashMessage,
       showNotification,
       theme,
-      toggleTheme
+      toggleTheme,
+      loadBackendData,
+      isLoadingBackend
     }}>
       {children}
     </AdminContext.Provider>

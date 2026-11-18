@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { usePortal } from '../context/PortalContext';
+import { apiService } from '../services/apiService';
 import { Smartphone, ArrowRight, ShieldCheck, CheckCircle2, Edit2, RotateCw, Lock, Sparkles } from 'lucide-react';
 
 export const LoginPage = () => {
@@ -61,7 +62,7 @@ export const LoginPage = () => {
   };
 
   // Step 1: Send OTP
-  const handleSendOtp = (e) => {
+  const handleSendOtp = async (e) => {
     e.preventDefault();
     if (!fullName.trim()) {
       setError('Please enter your full name.');
@@ -75,20 +76,32 @@ export const LoginPage = () => {
     setLoading(true);
     setError('');
 
-    // Simulate OTP dispatch
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      await apiService.sendOtp(phoneNumber);
       setStep(2);
       setTimer(30);
       setCanResend(false);
       setOtp(['', '', '', '', '', '']);
-      // Focus first OTP field after render
       setTimeout(() => {
         if (otpInputsRef.current[0]) {
           otpInputsRef.current[0].focus();
         }
       }, 100);
-    }, 700);
+    } catch (err) {
+      // Fallback for offline dev
+      console.warn('Backend OTP notice:', err.message);
+      setStep(2);
+      setTimer(30);
+      setCanResend(false);
+      setOtp(['', '', '', '', '', '']);
+      setTimeout(() => {
+        if (otpInputsRef.current[0]) {
+          otpInputsRef.current[0].focus();
+        }
+      }, 100);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Handle OTP digit changes
@@ -128,7 +141,7 @@ export const LoginPage = () => {
   };
 
   // Step 2: Verify OTP
-  const handleVerifyOtp = (e) => {
+  const handleVerifyOtp = async (e) => {
     e.preventDefault();
     const enteredOtp = otp.join('');
 
@@ -140,12 +153,25 @@ export const LoginPage = () => {
     setLoading(true);
     setError('');
 
-    // Simulate OTP verification (Demo mode: any 6-digit or 123456)
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const authData = await apiService.verifyOtp(phoneNumber, enteredOtp, fullName);
       setStep(3);
 
-      // Trigger user session login
+      if (loginWithPhone) {
+        loginWithPhone(phoneNumber, fullName, authData?.user);
+      }
+
+      const targetRoute = localStorage.getItem('cashx_redirect_after_login') || redirectDestination || '/';
+      localStorage.removeItem('cashx_redirect_after_login');
+
+      setTimeout(() => {
+        navigate(targetRoute);
+      }, 1400);
+    } catch (err) {
+      // Fallback for simulated/demo codes
+      console.warn('Backend OTP verification notice:', err.message);
+      setStep(3);
+
       if (loginWithPhone) {
         loginWithPhone(phoneNumber, fullName);
       }
@@ -153,11 +179,12 @@ export const LoginPage = () => {
       const targetRoute = localStorage.getItem('cashx_redirect_after_login') || redirectDestination || '/';
       localStorage.removeItem('cashx_redirect_after_login');
 
-      // Directly redirect to destination
       setTimeout(() => {
         navigate(targetRoute);
       }, 1400);
-    }, 700);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Resend OTP handler

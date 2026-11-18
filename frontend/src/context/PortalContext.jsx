@@ -44,16 +44,73 @@ export const PortalProvider = ({ children }) => {
 
   // Portal Requests Pipeline State
   const [requests, setRequests] = useState(() => {
-    const cleaned = localStorage.getItem('cashx_clean_state_v3');
-    if (!cleaned) {
-      localStorage.setItem('laptop_requests', JSON.stringify([]));
-      localStorage.setItem('cashx_admin_agents', JSON.stringify([]));
-      localStorage.setItem('cashx_clean_state_v3', 'true');
-      return [];
-    }
     const saved = localStorage.getItem('laptop_requests');
     return saved ? JSON.parse(saved) : [];
   });
+
+  // Load live company info from backend on mount
+  useEffect(() => {
+    apiService.getCompanyInfo().then(data => {
+      if (data) {
+        setCompanyInfo(prev => ({ ...prev, ...data }));
+      }
+    }).catch(() => {});
+  }, []);
+
+  // Load live customer requests from PostgreSQL backend when user is logged in
+  const loadCustomerRequests = async () => {
+    if (!currentUser) return;
+    try {
+      const liveRequests = await apiService.getMyRequests();
+      if (liveRequests && liveRequests.length > 0) {
+        const mapped = liveRequests.map(r => ({
+          id: r.id,
+          customer: {
+            name: r.customer?.name || currentUser.fullName,
+            phone: r.customer?.phone || currentUser.phone,
+            altPhone: r.customer?.altPhone || '',
+            email: r.customer?.email || currentUser.email,
+            address: r.customer?.address || '',
+            city: r.customer?.city || 'Bangalore',
+            pincode: r.customer?.pincode || ''
+          },
+          device: {
+            type: r.device?.deviceType || 'Laptop',
+            brand: r.device?.brand || 'Generic',
+            model: r.device?.model || '',
+            processor: r.device?.processor || '',
+            ram: r.device?.ram || '',
+            storage: r.device?.storage || '',
+            age: r.device?.age || '1-2 Years',
+            condition: r.device?.condition || 'Good',
+            accessories: r.device?.accessories ? r.device.accessories.split(', ') : ['Power Cable'],
+            expectedPrice: r.device?.expectedPrice || r.estimatedPrice
+          },
+          status: r.status || 'New Request',
+          assignedAgentId: r.assignedAgent?.id || null,
+          assignedAgentName: r.assignedAgent?.name || 'Unassigned',
+          assignedAgentPhone: r.assignedAgent?.phone || null,
+          scheduledDate: r.scheduledDate || null,
+          timeSlot: r.timeSlot || null,
+          dispatchNotes: r.dispatchNotes || '',
+          date: r.requestDate ? r.requestDate.split('T')[0] : new Date().toISOString().split('T')[0],
+          estimatedPrice: r.estimatedPrice || 0,
+          finalOfferPrice: r.finalOfferPrice || 0,
+          remarks: r.remarks || '',
+          inspection: r.inspection || null,
+          statusHistory: r.statusHistory || []
+        }));
+        setRequests(mapped);
+        localStorage.setItem('laptop_requests', JSON.stringify(mapped));
+      }
+    } catch (e) {
+      console.warn('Backend requests sync notice:', e.message);
+    }
+  };
+
+  useEffect(() => {
+    loadCustomerRequests();
+  }, [currentUser]);
 
   // Real-time synchronization: listen to storage and in-app custom events
   useEffect(() => {
@@ -182,9 +239,9 @@ export const PortalProvider = ({ children }) => {
     }
   };
 
-  const loginWithPhone = (phone, name) => {
+  const loginWithPhone = (phone, name, userPayload = null) => {
     const cleanName = name && name.trim() ? name.trim() : `User (+91 ${phone.slice(0, 5)} ${phone.slice(5)})`;
-    const userObj = {
+    const userObj = userPayload || {
       phone,
       fullName: cleanName,
       email: '',
@@ -200,6 +257,7 @@ export const PortalProvider = ({ children }) => {
   const logout = () => {
     setCurrentUser(null);
     localStorage.removeItem('laptop_user');
+    localStorage.removeItem('laptop_token');
     navigate('/');
   };
 
@@ -256,7 +314,7 @@ export const PortalProvider = ({ children }) => {
   };
 
   // Add new Buyback Request
-  const createBuybackRequest = (formData) => {
+  const createBuybackRequest = async (formData) => {
     const estimatedPrice = calculateQuote({
       deviceType: formData.deviceType || 'Laptop',
       brand: formData.brand,
@@ -268,8 +326,10 @@ export const PortalProvider = ({ children }) => {
       age: formData.age || '1-2 Years'
     });
 
+    let assignedId = `LB-${Math.floor(1000 + Math.random() * 9000)}`;
+
     const newReq = {
-      id: `LB-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: assignedId,
       customer: {
         name: formData.name || currentUser?.fullName || 'Valued Customer',
         phone: formData.phone || currentUser?.phone || '',
@@ -304,6 +364,15 @@ export const PortalProvider = ({ children }) => {
       remarks: ''
     };
 
+    try {
+      const backendRes = await apiService.submitRequest(newReq);
+      if (backendRes?.id) {
+        newReq.id = backendRes.id;
+      }
+    } catch (e) {
+      console.warn('Backend submit notice:', e.message);
+    }
+
     setRequests(prev => {
       const updated = [newReq, ...prev];
       localStorage.setItem('laptop_requests', JSON.stringify(updated));
@@ -311,12 +380,17 @@ export const PortalProvider = ({ children }) => {
       return updated;
     });
 
-    apiService.submitRequest(newReq);
     return newReq;
   };
 
   // Cancel a buyback request by the user
-  const cancelBuybackRequest = (requestId, reason = 'Cancelled by Customer') => {
+  const cancelBuybackRequest = async (requestId, reason = 'Cancelled by Customer') => {
+    try {
+      await apiService.cancelRequest(requestId, reason);
+    } catch (e) {
+      console.warn('Backend cancel notice:', e.message);
+    }
+
     setRequests(prev => {
       const updated = prev.map(req => {
         if (req.id === requestId) {
@@ -351,21 +425,30 @@ export const PortalProvider = ({ children }) => {
       resetPasswordWithOtp,
       logout,
       requests,
+      setRequests,
+      createBuybackRequest,
+      cancelBuybackRequest,
+      calculateQuote,
+      companyInfo,
+      updateCompanyInfo,
+      COMPANY_INFO: companyInfo,
       valuationModalOpen,
       setValuationModalOpen,
       categoryModalOpen,
       setCategoryModalOpen,
       authModalOpen,
       setAuthModalOpen,
-      calculateQuote,
-      createBuybackRequest,
-      cancelBuybackRequest,
-      COMPANY_INFO: companyInfo,
-      updateCompanyInfo
+      loadCustomerRequests
     }}>
       {children}
     </PortalContext.Provider>
   );
 };
 
-export const usePortal = () => useContext(PortalContext);
+export const usePortal = () => {
+  const context = useContext(PortalContext);
+  if (!context) {
+    throw new Error('usePortal must be used within a PortalProvider');
+  }
+  return context;
+};

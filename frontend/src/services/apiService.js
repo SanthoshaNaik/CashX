@@ -1,187 +1,443 @@
-// API Service connector with MongoDB Atlas Express Backend & Wakeup Ping
+// TheCashX API Service connector for Spring Boot REST Backend
 
-const API_BASE = (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1')
-  ? 'https://laptop-buy-back-api.onrender.com/api'
-  : '/api';
+const API_BASE = '/api';
 
-// Wake up Render Backend on page load to prevent cold start delays
-if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-  fetch('https://laptop-buy-back-api.onrender.com/api/requests')
-    .then(() => console.log('⚡ Render Backend API Woken Up'))
-    .catch(() => {});
-}
+const getAuthHeaders = (isAdmin = false) => {
+  const token = isAdmin
+    ? localStorage.getItem('cashx_admin_token')
+    : localStorage.getItem('laptop_token') || localStorage.getItem('cashx_admin_token');
+  
+  const headers = { 'Content-Type': 'application/json' };
+  if (token && token.startsWith('eyJ')) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+};
 
 export const apiService = {
-  // Register User directly to MongoDB Atlas
+  // 1. Send OTP to Mobile Number
+  async sendOtp(phone) {
+    const cleanPhone = phone.replace(/\D/g, '').slice(-10);
+    const res = await fetch(`${API_BASE}/auth/otp/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: cleanPhone })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Failed to send OTP.');
+    }
+    return data;
+  },
+
+  // 2. Verify OTP & Authenticate Customer
+  async verifyOtp(phone, otp, fullName) {
+    const cleanPhone = phone.replace(/\D/g, '').slice(-10);
+    const res = await fetch(`${API_BASE}/auth/otp/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: cleanPhone, otp, fullName })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Invalid OTP entered.');
+    }
+    if (data.data?.token) {
+      localStorage.setItem('laptop_token', data.data.token);
+    }
+    return data.data;
+  },
+
+  // 3. Register Customer with Email & Password
   async register(userData) {
-    try {
-      const res = await fetch(`${API_BASE}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData)
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Registration failed.');
-      }
-      return data;
-    } catch (e) {
-      if (e.message && e.message !== 'Failed to fetch') throw e;
-      console.log('Backend waking up or offline. Retrying registration...');
-      throw new Error(e.message || 'Connecting to server. Please try registering again in a few seconds.');
+    const res = await fetch(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData)
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Registration failed.');
     }
+    if (data.data?.token) {
+      localStorage.setItem('laptop_token', data.data.token);
+    }
+    return data.data || data;
   },
 
-  // User & Admin Login directly via MongoDB Atlas
+  // 4. Customer Login with Email & Password
   async login(role, password, email) {
-    try {
-      const res = await fetch(`${API_BASE}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role, password, email })
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Invalid email or password.');
-      }
-      return data;
-    } catch (e) {
-      if (e.message && e.message !== 'Failed to fetch') throw e;
-      
-      // Local fallback for Super Admin / Agent testing
-      if ((email === 'santhoshnaik546@gmail.com' && password === 'Nsanthu@12') || password === 'admin123' || password === '2001' || password === 'agent123') {
-        const user = {
-          id: role === 'ADMIN' ? 'usr-admin-super' : 'agent-101',
-          fullName: (role === 'ADMIN' || email === 'santhoshnaik546@gmail.com') ? 'Santhosha Naik (Super Admin)' : 'Suresh Gowda (Field Agent)',
-          email: email || 'santhoshnaik546@gmail.com',
-          role: role || 'ADMIN',
-          authProvider: 'EMAIL',
-          isEmailVerified: true,
-          token: 'mock-jwt-token-laptopbuyback-' + Date.now()
-        };
-        return { success: true, user, token: user.token };
-      }
-      throw new Error(e.message || 'Server connection failed. Please try again.');
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Invalid email or password.');
     }
+    if (data.data?.token) {
+      localStorage.setItem('laptop_token', data.data.token);
+    }
+    return data.data || data;
   },
 
-  // Google OAuth Login directly to MongoDB Atlas
+  // 5. Admin & Field Agent Login
+  async adminLogin(email, password) {
+    const res = await fetch(`${API_BASE}/auth/admin/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Invalid admin credentials.');
+    }
+    if (data.data?.token) {
+      localStorage.setItem('cashx_admin_token', data.data.token);
+    }
+    return data.data || data;
+  },
+
+  // 6. Google OAuth Login (Dev Fallback Mode)
   async googleLogin(googleProfile) {
-    try {
-      const res = await fetch(`${API_BASE}/auth/google`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(googleProfile)
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Google sign-in failed on server.');
-      }
-      return data;
-    } catch (e) {
-      if (e.message && e.message !== 'Failed to fetch') throw e;
-      throw new Error(e.message || 'Connecting to backend database. Please try again.');
+    const res = await fetch(`${API_BASE}/auth/google`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        credential: googleProfile.email || googleProfile.idToken || 'google-user@thecashx.com',
+        email: googleProfile.email,
+        name: googleProfile.name,
+        picture: googleProfile.picture
+      })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Google sign-in failed.');
     }
+    if (data.data?.token) {
+      localStorage.setItem('laptop_token', data.data.token);
+    }
+    return data.data || data;
   },
 
-  // Forgot Password (Send 6-Digit OTP)
+  // 7. Forgot Password (Send OTP)
   async forgotPassword(email) {
-    try {
-      const res = await fetch(`${API_BASE}/auth/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Failed to request password reset OTP.');
-      }
-      return data;
-    } catch (e) {
-      throw new Error(e.message || 'Failed to send OTP. Please check your network and try again.');
+    const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Failed to request password reset.');
     }
+    return data;
   },
 
-  // Reset Password with 6-Digit OTP
+  // 8. Reset Password with OTP
   async resetPasswordWithOtp(email, otp, newPassword) {
-    try {
-      const res = await fetch(`${API_BASE}/auth/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp, newPassword })
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.message || 'Failed to reset password.');
-      }
-      return data;
-    } catch (e) {
-      throw new Error(e.message || 'Password reset failed.');
+    const res = await fetch(`${API_BASE}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, otp, newPassword })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Failed to reset password.');
     }
+    return data;
   },
 
-  // Submit new Buyback Quote Request to MongoDB Atlas
+  // 9. Calculate Instant Price Quote via Synthetic Pricing Engine
+  async calculateQuote(specs) {
+    const res = await fetch(`${API_BASE}/pricing/calculate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(specs)
+    });
+    const data = await res.json();
+    if (res.ok && data.success) {
+      return data.data;
+    }
+    return null;
+  },
+
+  // 10. Submit Buyback Quote Request
   async submitRequest(requestData) {
     try {
+      const payload = {
+        customer: {
+          name: requestData.customer?.name || 'Valued Customer',
+          phone: (requestData.customer?.phone || '').replace(/\D/g, '').slice(-10) || '9876543210',
+          altPhone: requestData.customer?.altPhone || null,
+          email: requestData.customer?.email || 'customer@thecashx.com',
+          address: requestData.customer?.address || 'Doorstep Pickup Address',
+          city: requestData.customer?.city || 'Bangalore',
+          pincode: requestData.customer?.pincode || '560076'
+        },
+        device: {
+          type: requestData.device?.type || 'Laptop',
+          brand: requestData.device?.brand || 'Dell',
+          model: requestData.device?.model || 'Inspiron',
+          processor: requestData.device?.processor || 'Intel Core i5',
+          ram: requestData.device?.ram || '8GB',
+          storage: requestData.device?.storage || '512GB SSD',
+          condition: requestData.device?.condition || 'Good',
+          age: requestData.device?.age || '1-2 Years',
+          accessories: Array.isArray(requestData.device?.accessories)
+            ? requestData.device.accessories.join(', ')
+            : (requestData.device?.accessories || 'Original Charger'),
+          expectedPrice: requestData.device?.expectedPrice || requestData.estimatedPrice || 0
+        }
+      };
+
       const res = await fetch(`${API_BASE}/requests`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestData)
+        headers: getAuthHeaders(false),
+        body: JSON.stringify(payload)
       });
-      if (res.ok) return await res.json();
-    } catch (e) {
-      console.log('Error submitting request to backend:', e);
-    }
-    return { success: true, data: requestData };
-  },
-
-  // Fetch all requests
-  async getRequests() {
-    try {
-      const res = await fetch(`${API_BASE}/requests`);
       if (res.ok) {
         const data = await res.json();
         return data.data || data;
       }
     } catch (e) {
-      console.log('Error fetching requests from backend');
+      console.warn('Error submitting request to backend:', e);
+    }
+    return { success: true, data: requestData };
+  },
+
+  // 11. Fetch Logged-in Customer's Requests
+  async getMyRequests() {
+    try {
+      const res = await fetch(`${API_BASE}/requests/my`, {
+        headers: getAuthHeaders(false)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return data.data || [];
+      }
+    } catch (e) {
+      console.warn('Error fetching customer requests:', e);
     }
     return [];
   },
 
-  // Fetch all agents
-  async getAgents() {
+  // 12. Cancel Customer Buyback Request
+  async cancelRequest(requestId, reason = 'Cancelled by Customer') {
+    const res = await fetch(`${API_BASE}/requests/${requestId}/cancel`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(false),
+      body: JSON.stringify({ reason })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Failed to cancel request.');
+    }
+    return data.data || data;
+  },
+
+  // 13. Admin: Fetch All Orders
+  async getAdminOrders(filters = {}) {
     try {
-      const res = await fetch(`${API_BASE}/users/agents`);
+      const params = new URLSearchParams();
+      if (filters.city) params.append('city', filters.city);
+      if (filters.category) params.append('category', filters.category);
+      if (filters.status) params.append('status', filters.status);
+      if (filters.search) params.append('search', filters.search);
+
+      const url = `${API_BASE}/admin/orders${params.toString() ? '?' + params.toString() : ''}`;
+      const res = await fetch(url, {
+        headers: getAuthHeaders(true)
+      });
       if (res.ok) {
         const data = await res.json();
-        return data.agents || [];
+        return data.data || [];
       }
-    } catch (e) {}
+    } catch (e) {
+      console.warn('Error fetching admin orders:', e);
+    }
     return [];
   },
 
-  // Create Field Agent in MongoDB Atlas
-  async createAgent(agentData) {
-    try {
-      const res = await fetch(`${API_BASE}/users/agents`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(agentData)
-      });
-      if (res.ok) return await res.json();
-    } catch (e) {}
-    return { success: true };
+  // 14. Admin: Schedule Field Agent
+  async scheduleOrder(orderId, scheduleData) {
+    const res = await fetch(`${API_BASE}/admin/orders/${orderId}/schedule`, {
+      method: 'PUT',
+      headers: getAuthHeaders(true),
+      body: JSON.stringify(scheduleData)
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Failed to schedule agent.');
+    }
+    return data.data || data;
   },
 
-  // Delete Field Agent from MongoDB Atlas
-  async deleteAgent(agentId) {
+  // 15. Admin: Update Order Status
+  async updateOrderStatus(orderId, statusData) {
+    const res = await fetch(`${API_BASE}/admin/orders/${orderId}/status`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(true),
+      body: JSON.stringify(statusData)
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Failed to update status.');
+    }
+    return data.data || data;
+  },
+
+  // 16. Admin: Overview Statistics
+  async getAdminOverview() {
     try {
-      const res = await fetch(`${API_BASE}/users/agents/${agentId}`, {
-        method: 'DELETE'
+      const res = await fetch(`${API_BASE}/admin/overview`, {
+        headers: getAuthHeaders(true)
       });
-      if (res.ok) return await res.json();
-    } catch (e) {}
-    return { success: true };
+      if (res.ok) {
+        const data = await res.json();
+        return data.data;
+      }
+    } catch (e) {
+      console.warn('Error fetching admin overview:', e);
+    }
+    return null;
+  },
+
+  // 17. Admin: Get Field Agents Fleet
+  async getAgents(filters = {}) {
+    try {
+      const params = new URLSearchParams();
+      if (filters.city) params.append('city', filters.city);
+      if (filters.status) params.append('status', filters.status);
+      if (filters.search) params.append('search', filters.search);
+
+      const url = `${API_BASE}/admin/agents${params.toString() ? '?' + params.toString() : ''}`;
+      const res = await fetch(url, {
+        headers: getAuthHeaders(true)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return data.data || [];
+      }
+    } catch (e) {
+      console.warn('Error fetching agents:', e);
+    }
+    return [];
+  },
+
+  // 18. Admin: Create New Field Agent
+  async createAgent(agentData) {
+    const res = await fetch(`${API_BASE}/admin/agents`, {
+      method: 'POST',
+      headers: getAuthHeaders(true),
+      body: JSON.stringify(agentData)
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Failed to create field agent.');
+    }
+    return data.data || data;
+  },
+
+  // 19. Admin: Update Field Agent
+  async updateAgent(agentId, agentData) {
+    const res = await fetch(`${API_BASE}/admin/agents/${agentId}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(true),
+      body: JSON.stringify(agentData)
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Failed to update agent.');
+    }
+    return data.data || data;
+  },
+
+  // 20. Admin: Delete Field Agent
+  async deleteAgent(agentId) {
+    const res = await fetch(`${API_BASE}/admin/agents/${agentId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(true)
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Failed to delete agent.');
+    }
+    return data;
+  },
+
+  // 21. Field Agent: Get Assigned Orders Queue
+  async getAgentOrders() {
+    try {
+      const res = await fetch(`${API_BASE}/agent/orders`, {
+        headers: getAuthHeaders(true)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return data.data || [];
+      }
+    } catch (e) {
+      console.warn('Error fetching agent orders:', e);
+    }
+    return [];
+  },
+
+  // 22. Field Agent: Save On-Site Inspection & Final Payout
+  async saveInspection(orderId, inspectionData) {
+    const res = await fetch(`${API_BASE}/agent/orders/${orderId}/inspection`, {
+      method: 'PUT',
+      headers: getAuthHeaders(true),
+      body: JSON.stringify(inspectionData)
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Failed to submit inspection.');
+    }
+    return data.data || data;
+  },
+
+  // 23. Field Agent: Get Profile & Stats
+  async getAgentProfile() {
+    try {
+      const res = await fetch(`${API_BASE}/agent/profile`, {
+        headers: getAuthHeaders(true)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return data.data;
+      }
+    } catch (e) {
+      console.warn('Error fetching agent profile:', e);
+    }
+    return null;
+  },
+
+  // 24. Public: Submit Contact Inquiry
+  async submitContact(contactData) {
+    const res = await fetch(`${API_BASE}/contact`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(contactData)
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || 'Failed to send message.');
+    }
+    return data;
+  },
+
+  // 25. Public: Fetch Dynamic Company Info
+  async getCompanyInfo() {
+    try {
+      const res = await fetch(`${API_BASE}/company/info`);
+      if (res.ok) {
+        const data = await res.json();
+        return data.data;
+      }
+    } catch (e) {
+      console.warn('Error fetching company info:', e);
+    }
+    return null;
   }
 };

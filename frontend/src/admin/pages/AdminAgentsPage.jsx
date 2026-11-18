@@ -1,13 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAdmin } from '../AdminContext';
 import { 
   Users, UserPlus, Search, MapPin, Phone, Mail, Star, CheckCircle2, 
-  AlertCircle, Edit3, Trash2, X, ShieldCheck, Laptop, Building2, Eye, Award, ExternalLink, Calendar
+  AlertCircle, Edit3, Trash2, X, ShieldCheck, Laptop, Building2, Eye, Award, ExternalLink, Calendar,
+  RefreshCw
 } from 'lucide-react';
 import { CITIES } from '../../data/portalData';
 
 export const AdminAgentsPage = () => {
-  const { agents, addAgent, updateAgent, deleteAgent, orders, setActiveTab, setSelectedStatus } = useAdmin();
+  const { agents, addAgent, updateAgent, deleteAgent, orders, setActiveTab, setSelectedStatus, loadBackendData, isLoadingBackend } = useAdmin();
+
+  // Fetch latest fleet from backend on mount
+  useEffect(() => {
+    loadBackendData();
+  }, []);
 
   // Search & Filter State
   const [searchQuery, setSearchQuery] = useState('');
@@ -129,7 +135,12 @@ export const AdminAgentsPage = () => {
         {/* Page Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <span className="badge badge-gold" style={{ marginBottom: '0.5rem' }}>FIELD FLEET OPERATIONS</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
+              <span className="badge badge-gold">FIELD FLEET OPERATIONS</span>
+              <span className="badge badge-emerald" style={{ fontSize: '0.72rem', padding: '0.15rem 0.5rem' }}>
+                ● PostgreSQL Live ({agents.length} Agents)
+              </span>
+            </div>
             <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-main)' }}>
               Field Inspection Agents Directory
             </h1>
@@ -138,13 +149,25 @@ export const AdminAgentsPage = () => {
             </p>
           </div>
 
-          <button
-            onClick={handleOpenAddModal}
-            className="btn btn-gold"
-            style={{ padding: '0.75rem 1.25rem', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-          >
-            <UserPlus size={18} /> Add New Field Agent
-          </button>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            <button
+              onClick={loadBackendData}
+              disabled={isLoadingBackend}
+              className="btn btn-outline"
+              style={{ padding: '0.75rem 1.1rem', fontSize: '0.9rem', gap: '0.45rem' }}
+            >
+              <RefreshCw size={16} style={{ animation: isLoadingBackend ? 'spin 1s linear infinite' : 'none' }} />
+              {isLoadingBackend ? 'Syncing...' : 'Refresh Fleet'}
+            </button>
+
+            <button
+              onClick={handleOpenAddModal}
+              className="btn btn-gold"
+              style={{ padding: '0.75rem 1.25rem', fontSize: '0.9rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+            >
+              <UserPlus size={18} /> Add New Field Agent
+            </button>
+          </div>
         </div>
 
         {/* Quick Stats Grid */}
