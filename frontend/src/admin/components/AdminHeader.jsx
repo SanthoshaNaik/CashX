@@ -1,9 +1,9 @@
 import React from 'react';
 import { useAdmin } from '../AdminContext';
-import { Laptop, Package, Users, BarChart3, LogOut, ExternalLink, ShieldCheck, Sun, Moon, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Laptop, Package, Users, BarChart3, LogOut, ExternalLink, ShieldCheck, Sun, Moon, CheckCircle2, AlertCircle, RefreshCw, Database } from 'lucide-react';
 
 export const AdminHeader = () => {
-  const { adminUser, logout, activeTab, setActiveTab, orders, agents, flashMessage, theme, toggleTheme } = useAdmin();
+  const { adminUser, logout, activeTab, setActiveTab, orders, agents, flashMessage, theme, toggleTheme, loadBackendData, isLoadingBackend } = useAdmin();
 
   const isFieldAgent = adminUser?.role === 'FIELD_AGENT';
 
@@ -237,6 +237,26 @@ export const AdminHeader = () => {
 
         {/* Right Side: User Profile & Actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+          {/* Live DB Sync Button */}
+          <button
+            onClick={loadBackendData}
+            disabled={isLoadingBackend}
+            aria-label="Sync with Database"
+            title="Refresh Live Orders from PostgreSQL Backend"
+            className="btn btn-outline"
+            style={{
+              padding: '0.45rem 0.75rem',
+              fontSize: '0.8rem',
+              gap: '0.4rem',
+              background: theme === 'light' ? '#ffffff' : undefined,
+              borderColor: theme === 'light' ? '#cbd5e1' : undefined,
+              color: theme === 'light' ? '#0f172a' : undefined
+            }}
+          >
+            <RefreshCw size={14} className={isLoadingBackend ? 'animate-spin' : ''} style={{ animation: isLoadingBackend ? 'spin 1s linear infinite' : 'none' }} />
+            <span>{isLoadingBackend ? 'Syncing...' : 'Sync DB'}</span>
+          </button>
+
           {/* Theme Switcher Button (Dark / White Mode) */}
           <button
             onClick={toggleTheme}

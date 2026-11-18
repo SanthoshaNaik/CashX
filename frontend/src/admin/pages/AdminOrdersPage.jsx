@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAdmin } from '../AdminContext';
 import { 
   Package, Search, Filter, MapPin, Laptop, Monitor, Tv, Apple, UserCheck, 
   Clock, CheckCircle2, AlertCircle, X, ChevronDown, User, Phone, MapPinned, 
-  ShieldCheck, ArrowRight, Eye, Calendar, Sparkles, Send, FileText, Check
+  ShieldCheck, ArrowRight, Eye, Calendar, Sparkles, Send, FileText, Check,
+  RefreshCw
 } from 'lucide-react';
 import { CITIES, CATEGORIES } from '../../data/portalData';
 
@@ -21,8 +22,15 @@ export const AdminOrdersPage = () => {
     selectedStatus, 
     setSelectedStatus, 
     searchQuery, 
-    setSearchQuery 
+    setSearchQuery,
+    loadBackendData,
+    isLoadingBackend
   } = useAdmin();
+
+  // Load latest orders from backend on page mount
+  useEffect(() => {
+    loadBackendData();
+  }, []);
 
   // Modals state
   const [scheduleModalOrder, setScheduleModalOrder] = useState(null);
@@ -147,6 +155,9 @@ export const AdminOrdersPage = () => {
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
               <span className="badge badge-gold">OPERATIONS CONSOLE</span>
+              <span className="badge badge-emerald" style={{ fontSize: '0.72rem', padding: '0.15rem 0.5rem' }}>
+                ● PostgreSQL Live ({orders.length} Orders)
+              </span>
             </div>
             <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-main)' }}>
               Buyback Orders & Field Fleet Dispatch
@@ -155,6 +166,16 @@ export const AdminOrdersPage = () => {
               Review customer device dossiers, schedule field technicians for specific products, and manage live evaluations
             </p>
           </div>
+
+          <button
+            onClick={loadBackendData}
+            disabled={isLoadingBackend}
+            className="btn btn-outline"
+            style={{ padding: '0.6rem 1.1rem', fontSize: '0.85rem', gap: '0.45rem' }}
+          >
+            <RefreshCw size={15} style={{ animation: isLoadingBackend ? 'spin 1s linear infinite' : 'none' }} />
+            {isLoadingBackend ? 'Fetching Orders...' : 'Refresh Orders'}
+          </button>
         </div>
 
         {/* Filter Controls Bar */}

@@ -1,15 +1,26 @@
 import React, { useState } from 'react';
 import { usePortal } from '../context/PortalContext';
+import { apiService } from '../services/apiService';
 import { Send, CheckCircle2, MessageSquare } from 'lucide-react';
 
 export const ContactPage = () => {
   const { COMPANY_INFO } = usePortal();
   const [form, setForm] = useState({ name: '', email: '', phone: '', message: '' });
   const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSent(true);
+    setLoading(true);
+    try {
+      await apiService.submitContact(form);
+      setSent(true);
+    } catch (err) {
+      console.warn('Backend notice:', err.message);
+      setSent(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
